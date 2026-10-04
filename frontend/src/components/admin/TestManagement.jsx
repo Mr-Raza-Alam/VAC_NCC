@@ -289,7 +289,11 @@ const TestManagement = () => {
             style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
           >
             <option value="syllabus">Syllabus PDF</option>
-            <option value="notes">Notes PDF</option>
+            <option value="notesUnit1">Notes: Unit 1 PDF</option>
+            <option value="notesUnit2">Notes: Unit 2 PDF</option>
+            <option value="notesUnit3">Notes: Unit 3 PDF</option>
+            <option value="notesUnit4">Notes: Unit 4 PDF</option>
+            <option value="notesUnit5">Notes: Unit 5 PDF</option>
           </select>
           <input 
             type="file" 

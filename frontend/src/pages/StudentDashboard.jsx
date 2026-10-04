@@ -4,6 +4,9 @@ import { useUI } from '../context/UIContext';
 import BranchCard from '../components/student/BranchCard';
 import TestInstructions from '../components/student/TestInstructions';
 import LiveTest from '../components/student/LiveTest';
+import IdCardModal from '../components/student/modals/IdCardModal';
+import NotesModal from '../components/student/modals/NotesModal';
+import SupportModal from '../components/student/modals/SupportModal';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -26,7 +29,13 @@ const StudentDashboard = () => {
   });
 
   const [syllabusUrl, setSyllabusUrl] = useState(null);
-  const [notesUrl, setNotesUrl] = useState(null);
+  
+  const [fullStudentData, setFullStudentData] = useState(null);
+  const [systemSettingsData, setSystemSettingsData] = useState(null);
+  
+  const [showIdModal, setShowIdModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   const fetchStudentData = async () => {
     const token = localStorage.getItem('studentToken');
@@ -43,6 +52,7 @@ const StudentDashboard = () => {
       if (profileRes.ok) {
         setStudentName(profileData.name);
         setIsOnboarded(profileData.isOnboarded);
+        setFullStudentData(profileData);
       } else {
         navigate('/student/login');
         return;
@@ -78,7 +88,7 @@ const StudentDashboard = () => {
       const data = await response.json();
       if (data) {
         setSyllabusUrl(data.syllabusUrl);
-        setNotesUrl(data.notesUrl);
+        setSystemSettingsData(data);
       }
     } catch (error) {
       console.error("Failed to fetch system settings");
@@ -230,17 +240,14 @@ const StudentDashboard = () => {
           {showProfileMenu && (
             <div style={{ position: 'absolute', top: '120%', right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', minWidth: '220px', border: '1px solid #e2e8f0', zIndex: 100, overflow: 'hidden' }}>
               <div style={menuItemStyle} onClick={() => { setShowProfileMenu(false); showFlash("Overview clicked", "info"); }}>Overview</div>
-              <div style={menuItemStyle} onClick={() => { setShowProfileMenu(false); showFlash("Profile clicked", "info"); }}>Profile</div>
+              <div style={menuItemStyle} onClick={() => { setShowProfileMenu(false); setShowIdModal(true); }}>Profile (ID Card)</div>
               <div style={menuItemStyle} onClick={() => { 
                 setShowProfileMenu(false); 
                 if (syllabusUrl) window.open(syllabusUrl, '_blank'); 
                 else showFlash("Syllabus not uploaded yet", "error"); 
               }}>Syllabus</div>
-              <div style={menuItemStyle} onClick={() => { 
-                setShowProfileMenu(false); 
-                if (notesUrl) window.open(notesUrl, '_blank'); 
-                else showFlash("Notes not uploaded yet", "error"); 
-              }}>Notes</div>
+              <div style={menuItemStyle} onClick={() => { setShowProfileMenu(false); setShowNotesModal(true); }}>Notes (Study Material)</div>
+              <div style={menuItemStyle} onClick={() => { setShowProfileMenu(false); setShowSupportModal(true); }}>Support</div>
               <div style={{ ...menuItemStyle, color: '#ef4444', borderTop: '1px solid #f1f5f9', backgroundColor: '#fef2f2' }} onClick={handleLogout}>Logout</div>
             </div>
           )}
@@ -339,6 +346,12 @@ const StudentDashboard = () => {
 
         </div>
       </div>
+
+      {/* Render Modals */}
+      {showIdModal && <IdCardModal studentData={fullStudentData} onClose={() => setShowIdModal(false)} />}
+      {showNotesModal && <NotesModal settings={systemSettingsData} onClose={() => setShowNotesModal(false)} />}
+      {showSupportModal && <SupportModal onClose={() => setShowSupportModal(false)} />}
+
     </div>
   );
 };

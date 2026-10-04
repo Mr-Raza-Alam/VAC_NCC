@@ -17,7 +17,11 @@ const systemSettingsSchema = new mongoose.Schema({
 
   // Cloudflare R2 Document URLs
   syllabusUrl: { type: String, default: null },
-  notesUrl: { type: String, default: null }
+  notesUnit1: { type: String, default: null },
+  notesUnit2: { type: String, default: null },
+  notesUnit3: { type: String, default: null },
+  notesUnit4: { type: String, default: null },
+  notesUnit5: { type: String, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('SystemSettings', systemSettingsSchema);

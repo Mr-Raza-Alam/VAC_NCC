@@ -35,7 +35,8 @@ exports.uploadDocument = async (req, res) => {
       return res.status(400).json({ message: 'No file provided' });
     }
 
-    if (type !== 'syllabus' && type !== 'notes') {
+    const validTypes = ['syllabus', 'notesUnit1', 'notesUnit2', 'notesUnit3', 'notesUnit4', 'notesUnit5'];
+    if (!validTypes.includes(type)) {
       return res.status(400).json({ message: 'Invalid document type' });
     }
 
@@ -76,7 +77,7 @@ exports.uploadDocument = async (req, res) => {
     if (type === 'syllabus') {
       settings.syllabusUrl = fileUrl;
     } else {
-      settings.notesUrl = fileUrl;
+      settings[type] = fileUrl;
     }
 
     await settings.save();
