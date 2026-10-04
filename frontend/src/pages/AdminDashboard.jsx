@@ -152,8 +152,30 @@ const AdminDashboard = () => {
     setConfirmDialog({ ...confirmDialog, isOpen: false }); // close it immediately
 
     if (type === 'activate') {
-      setTestStates(prev => ({ ...prev, [phase]: newState }));
-      showFlash(`${phase.replace('_', ' ').toUpperCase()} Activated! Live Entry Mode.`, "success");
+      showLoader();
+      try {
+        const testTypeMap = { internal_1: 'Int-1', internal_2: 'Int-2', internal_3: 'Int-3' };
+        const tType = testTypeMap[phase] || phase;
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ testType: tType, isActive: true })
+        });
+        
+        if (response.ok) {
+          setTestStates(prev => ({ ...prev, [phase]: newState }));
+          await fetchSettings();
+          showFlash(`${phase.replace('_', ' ').toUpperCase()} Activated! Live Entry Mode.`, "success");
+        } else {
+          const result = await response.json();
+          showFlash(result.message || "Failed to activate test on backend.", "error");
+        }
+      } catch (err) {
+        showFlash("Server error during activation.", "error");
+      } finally {
+        hideLoader();
+      }
     } else if (type === 'finalize') {
       showLoader();
       try {

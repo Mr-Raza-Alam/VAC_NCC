@@ -56,6 +56,8 @@ exports.studentRegister = async (req, res) => {
     try {
         const { vac_rollNo, email, password } = req.body;
         
+        if (!vac_rollNo || !password) return res.status(400).json({ message: "Roll Number and password are required" });
+
         // Check if student exists (uploaded by admin via CSV)
         const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
         if (!student) {
@@ -107,6 +109,10 @@ exports.studentLogin = async (req, res) => {
     try {
         const { vac_rollNo, password } = req.body;
         
+        if (!vac_rollNo || !password) {
+            return res.status(400).json({ message: "Roll Number and password are required." });
+        }
+        
         const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
         if (!student || !student.password) {
             return res.status(401).json({ message: "Invalid credentials or not registered yet." });
@@ -135,6 +141,6 @@ exports.studentLogin = async (req, res) => {
         });
     } catch (error) {
         console.error("Student Login Error:", error);
-        res.status(500).json({ message: "Server error during login." });
+        res.status(500).json({ message: "Server error during login: " + error.message });
     }
 };

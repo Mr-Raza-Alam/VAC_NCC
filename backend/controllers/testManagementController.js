@@ -10,7 +10,7 @@ const csv = require('csv-parser');
 // Save or Update Settings
 exports.saveSettings = async (req, res) => {
     try {
-        const { testType, duration, resultsVisibility, testDate, startTime, endTime, isFinalized } = req.body;
+        const { testType, duration, resultsVisibility, testDate, startTime, endTime, isActive, isFinalized } = req.body;
         if (!testType) return res.status(400).json({ message: "testType is required" });
 
         let settings = await TestSettings.findOne({ testType });
@@ -20,6 +20,7 @@ exports.saveSettings = async (req, res) => {
             if (testDate !== undefined) settings.testDate = testDate;
             if (startTime !== undefined) settings.startTime = startTime;
             if (endTime !== undefined) settings.endTime = endTime;
+            if (isActive !== undefined) settings.isActive = isActive;
             if (isFinalized !== undefined) settings.isFinalized = isFinalized;
             await settings.save();
         } else {
@@ -91,9 +92,10 @@ exports.verifyAndFinalizePhase = async (req, res) => {
         let settings = await TestSettings.findOne({ testType });
         if (settings) {
             settings.isFinalized = true;
+            settings.isActive = false;
             await settings.save();
         } else {
-            settings = await TestSettings.create({ testType, isFinalized: true });
+            settings = await TestSettings.create({ testType, isFinalized: true, isActive: false });
         }
 
         // SAVE THE DATA TO THE DATABASES!
