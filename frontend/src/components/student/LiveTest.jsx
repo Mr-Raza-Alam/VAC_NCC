@@ -5,30 +5,42 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   const { showFlash } = useUI();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // { questionId: selectedOption }
-  const [timeLeft, setTimeLeft] = useState(settings?.duration ? settings.duration * 60 : 30 * 60); 
+  
+  // Admin-configured duration is the single source of truth
+  const configuredSeconds = (settings?.duration || 30) * 60;
+  const [timeLeft, setTimeLeft] = useState(configuredSeconds); 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [antiCheatTriggered, setAntiCheatTriggered] = useState(false);
 
-  // Restore state resilience from localStorage
+  // Restore state resilience from localStorage (only for crash recovery mid-test)
   useEffect(() => {
     const savedState = localStorage.getItem(`vac_test_state_${testType}`);
     if (savedState) {
         try {
             const parsed = JSON.parse(savedState);
-            const timePassed = Math.floor((Date.now() - parsed.timestamp) / 1000);
-            const remaining = parsed.timeLeft - timePassed;
-            if (remaining > 0) {
-                setTimeLeft(remaining);
-                setAnswers(parsed.answers || {});
+            // Only restore if they actually had in-progress answers
+            if (parsed.answers && Object.keys(parsed.answers).length > 0) {
+                const timePassed = Math.floor((Date.now() - parsed.timestamp) / 1000);
+                const remaining = parsed.timeLeft - timePassed;
+                // Cap restored time to admin-configured duration (never exceed it)
+                const cappedRemaining = Math.min(remaining, configuredSeconds);
+                if (cappedRemaining > 0) {
+                    setTimeLeft(cappedRemaining);
+                    setAnswers(parsed.answers);
+                } else {
+                    setTimeLeft(1); // will trigger auto-submit next tick
+                }
             } else {
-                setTimeLeft(1); // will trigger auto-submit next tick
+                // No real answers saved — fresh start, clear stale data
+                localStorage.removeItem(`vac_test_state_${testType}`);
             }
         } catch (e) {
             console.error("Failed to restore test state", e);
+            localStorage.removeItem(`vac_test_state_${testType}`);
         }
     }
-  }, [testType]);
+  }, [testType, configuredSeconds]);
 
   // Save state continuously when answers or timeLeft change
   useEffect(() => {
