@@ -1,0 +1,87 @@
+/* --- Dashboard Layout & Header --- */
+.dashboard-main {
+  flex: 1;
+  background-color: var(--bg-primary, #f8fafc);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-page {
+  min-height: 100vh;
+  background-color: var(--bg-primary, #f8fafc);
+  padding-top: 90px; /* Offset for fixed navbar */
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  height: 70px;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.dashboard-title {
+  margin: 0;
+  color: var(--text-heading, #1e3a8a);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* Profile Dropdown Button */
+.profile-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f1f5f9;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+.profile-menu-btn-rounded {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background-color: #f1f5f9;
+  padding: 8px 20px;
+  border-radius: 30px;
+  border: 1px solid #e2e8f0;
+  transition: background-color 0.2s;
+}
+
+.profile-menu-btn:hover, .profile-menu-btn-rounded:hover {
+  background-color: #e2e8f0;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+  /* Fix header squeezing */
+  .dashboard-header {
+    padding: 0 16px; /* Greatly reduce padding on mobile */
+    height: auto;
+    min-height: 70px;
+    flex-wrap: wrap; /* Allow wrapping if needed */
+    gap: 10px;
+  }
+  
+  .dashboard-title {
+    font-size: 1.25rem; /* Scale down title */
+  }
+
+  /* Profile buttons */
+  .profile-menu-btn, .profile-menu-btn-rounded {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  .profile-menu-btn span:last-child, .profile-menu-btn-rounded span:last-child {
+    display: none; /* Hide "My Profile ▼" text on mobile, just show icon */
+  }
+}

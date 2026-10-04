@@ -160,11 +160,11 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', paddingTop: '80px', display: 'flex', flexDirection: 'column' }}>
+    <div className="dashboard-page">
       
       {/* Top Bar / Header */}
-      <div style={{ backgroundColor: '#ffffff', padding: '20px 40px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-        <h1 style={{ margin: 0, color: '#1e3a8a', fontSize: '1.8rem', fontWeight: '800', letterSpacing: '-0.5px' }}>
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">
           Welcome, {studentName}
         </h1>
         
@@ -172,7 +172,7 @@ const StudentDashboard = () => {
         <div style={{ position: 'relative' }}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', backgroundColor: '#f1f5f9', padding: '8px 20px', borderRadius: '30px', border: '1px solid #e2e8f0', transition: 'background-color 0.2s' }}
+            className="profile-menu-btn-rounded"
           >
             <span style={{ fontSize: '1.2rem' }}>👤</span>
             <span style={{ fontWeight: '600', color: '#334155' }}>My Profile ▼</span>

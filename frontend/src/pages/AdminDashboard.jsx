@@ -434,10 +434,10 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+      <main className="dashboard-main">
         
         {/* Main Content Header matching sidebar header height */}
-        <div style={{ height: '70px', padding: '0 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="dashboard-header">
           
           <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
             ☰
@@ -445,7 +445,7 @@ const AdminDashboard = () => {
 
           <div style={{ position: 'relative', marginLeft: 'auto' }}>
             <div 
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f1f5f9', padding: '8px 16px', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer' }}
+              className="profile-menu-btn"
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
               <span style={{ fontSize: '1.1rem' }}>👤</span>
