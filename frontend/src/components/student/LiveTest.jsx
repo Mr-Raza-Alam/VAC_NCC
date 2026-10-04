@@ -91,18 +91,68 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     return () => clearInterval(timer);
   }, [isLoading, isSubmitting]);
 
-  // Anti-cheating mechanism (Tab visibility)
+  // Comprehensive Anti-cheating mechanism
   useEffect(() => {
+    if (isLoading || isSubmitting) return;
+
+    // 1. Tab Visibility Lock
     const handleVisibilityChange = () => {
         if (document.visibilityState === 'hidden' && !isSubmitting && !isLoading) {
             setAntiCheatTriggered(true);
             handleAutoSubmit("Test auto-submitted due to tab switching (Anti-Cheating protocol triggered).");
         }
     };
-    
+
+    // 2. Window Blur Lock (Catches OS-level overlays like AI assistants, notifications, split screen)
+    const handleBlur = () => {
+        if (!isSubmitting && !isLoading) {
+            setAntiCheatTriggered(true);
+            handleAutoSubmit("Test auto-submitted due to loss of window focus. (You interacted with an external overlay or app).");
+        }
+    };
+
+    // 3. Fullscreen Lock (If they exit fullscreen, they are penalized)
+    const handleFullscreenChange = () => {
+        if (!document.fullscreenElement && !isSubmitting && !isLoading) {
+            setAntiCheatTriggered(true);
+            handleAutoSubmit("Test auto-submitted because you exited fullscreen mode.");
+        }
+    };
+
+    // 4. Disable Copy, Paste, Right Click
+    const preventAction = (e) => e.preventDefault();
+
+    // Try to enter fullscreen on mount
+    try {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        }
+    } catch (e) {
+       console.log("Fullscreen API not supported");
+    }
+
+    // Attach all strict listeners
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("contextmenu", preventAction); // Right click
+    document.addEventListener("copy", preventAction);
+    document.addEventListener("paste", preventAction);
+    
     return () => {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
+        window.removeEventListener("blur", handleBlur);
+        document.removeEventListener("fullscreenchange", handleFullscreenChange);
+        document.removeEventListener("contextmenu", preventAction);
+        document.removeEventListener("copy", preventAction);
+        document.removeEventListener("paste", preventAction);
+        
+        // Exit fullscreen on cleanup
+        if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(err => console.log(err));
+        }
     };
   }, [isLoading, isSubmitting]);
 
@@ -164,7 +214,12 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   if (isLoading) return <div style={{ textAlign: 'center', padding: '50px' }}>Loading questions...</div>;
 
   return (
-    <div style={{ paddingBottom: '100px' }}>
+    <div style={{ 
+      paddingBottom: '100px',
+      userSelect: 'none', // 5. Prevent text highlighting/selection globally
+      WebkitUserSelect: 'none',
+      msUserSelect: 'none'
+    }}>
       
       {/* STICKY TIMER (UI/UX Requirement) */}
       <div style={{
