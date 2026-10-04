@@ -1,6 +1,22 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import nccHero from '../assets/ncc_hero.jpeg';
+import nccPic1 from '../assets/ncc_pic1.jpeg';
+import nccPic2 from '../assets/ncc_pic2.jpeg';
+import nccPic3 from '../assets/ncc_pic3.jpeg';
+import nccPic4 from '../assets/ncc_pic4.jpeg';
+import nccPic7 from '../assets/ncc_pic7.jpeg';
+import nccPic9 from '../assets/ncc_pic9.jpeg';
+import nccPic10 from '../assets/ncc_pic10.jpeg';
+import nccPic11 from '../assets/ncc_pic11.jpeg';
+import nccPic12 from '../assets/ncc_pic12.jpeg';
+
+const glimpseImages = [
+  nccPic1, nccPic2, nccPic3, nccPic4, nccPic7,
+  nccPic9, nccPic10, nccPic11, nccPic12
+];
+
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -10,7 +26,7 @@ const LandingPage = () => {
       <div className="hero-wrapper">
         <section className="hero-section">
           <div className="hero-bg">
-            <img src="/src/assets/ncc_hero.jpeg" alt="NCC Cadets" />
+            <img src={nccHero} alt="NCC Cadets" />
             <div className="hero-overlay"></div>
           </div>
           
@@ -41,9 +57,9 @@ const LandingPage = () => {
         <h2 className="section-title">Glimpses of NCC Assam University</h2>
         
         <div className="gallery-grid">
-          {[1, 2, 3, 4, 7, 9, 10, 11, 12].map((num) => (
-            <div key={num} className="gallery-item">
-              <img src={`/src/assets/ncc_pic${num}.jpeg`} alt={`NCC Glimpse ${num}`} />
+          {glimpseImages.map((imgSrc, idx) => (
+            <div key={idx} className="gallery-item">
+              <img src={imgSrc} alt={`NCC Glimpse ${idx + 1}`} />
             </div>
           ))}
         </div>

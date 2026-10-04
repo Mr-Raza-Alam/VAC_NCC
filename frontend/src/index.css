@@ -334,7 +334,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: url('/src/assets/ncc_hero.jpeg');
+  background-image: url('./assets/ncc_hero.jpeg');
   background-size: cover;
   background-position: center;
 }
