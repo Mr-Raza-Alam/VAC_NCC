@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUI } from '../context/UIContext';
+import '../styles/adminDashboard.css';
 import RecordSection from '../components/admin/RecordSection';
 import TestSection from '../components/admin/TestSection';
 import SystemSection from '../components/admin/SystemSection';
@@ -236,7 +237,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="dashboard-page" style={{ display: 'flex', minHeight: '100vh', paddingTop: '80px' }}>
+    <div className="admin-layout-container">
       
       {/* Custom Confirm Modal */}
       {confirmDialog.isOpen && (
@@ -269,7 +270,7 @@ const AdminDashboard = () => {
       ></div>
 
       {/* Sidebar */}
-      <aside className={`admin-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`} style={{ width: '270px', backgroundColor: '#ffffff', borderRight: '1px solid #e2e8f0', color: '#334155', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <aside className={`admin-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div 
           style={{ height: '70px', padding: '0 20px', borderBottom: '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', alignItems: 'center', backgroundColor: '#f8fafc' }}
           onClick={() => handleTabClick('system', 'home')}
@@ -434,10 +435,10 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="dashboard-main">
+      <main className="admin-main-content">
         
-        {/* Main Content Header matching sidebar header height */}
-        <div className="dashboard-header">
+        {/* Main Content Header */}
+        <div className="admin-top-header">
           
           <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
             ☰
@@ -462,7 +463,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Dynamic Content */}
-        <div style={{ padding: '40px', flex: 1, position: 'relative', overflowY: 'auto' }}>
+        <div className="admin-content-area">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <h1 style={{ fontSize: '2rem', color: '#1e3a8a', textTransform: 'capitalize', margin: 0 }}>
               {activeSubTab.replace(/_/g, ' ')}
