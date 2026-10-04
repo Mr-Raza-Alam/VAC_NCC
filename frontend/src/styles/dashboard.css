@@ -24,6 +24,7 @@
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  position: relative; /* Added for absolute profile icon */
 }
 
 .dashboard-title {
@@ -66,15 +67,14 @@
 @media (max-width: 768px) {
   /* Fix header squeezing */
   .dashboard-header {
-    padding: 0 16px; /* Greatly reduce padding on mobile */
-    height: auto;
+    padding: 16px; /* Greatly reduce padding on mobile */
     min-height: 70px;
-    flex-wrap: wrap; /* Allow wrapping if needed */
-    gap: 10px;
+    align-items: flex-start;
   }
   
   .dashboard-title {
     font-size: 1.25rem; /* Scale down title */
+    margin-right: 40px; /* Leave space for absolute profile button */
   }
 
   /* Profile buttons */

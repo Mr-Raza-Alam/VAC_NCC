@@ -16,7 +16,7 @@ const NotesModal = ({ settings, onClose }) => {
       display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
     }}>
       <div style={{
-        backgroundColor: 'white', borderRadius: '16px', width: '450px',
+        backgroundColor: 'white', borderRadius: '16px', width: '90%', maxWidth: '450px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)', padding: '30px', position: 'relative'
       }}>
         <button onClick={onClose} style={{

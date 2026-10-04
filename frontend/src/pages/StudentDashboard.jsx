@@ -229,7 +229,7 @@ const StudentDashboard = () => {
         </div>
         
         {/* Profile Dropdown */}
-        <div style={{ position: 'relative', marginTop: '10px' }}>
+        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 50 }}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="profile-menu-btn-rounded"

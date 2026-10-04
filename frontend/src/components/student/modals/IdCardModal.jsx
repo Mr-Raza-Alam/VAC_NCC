@@ -12,7 +12,8 @@ const IdCardModal = ({ studentData, onClose }) => {
       <div style={{
         backgroundColor: 'white',
         borderRadius: '16px',
-        width: '400px',
+        width: '90%',
+        maxWidth: '400px',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
         overflow: 'hidden',
         position: 'relative'
