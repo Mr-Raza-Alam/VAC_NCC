@@ -280,7 +280,7 @@ const AdminDashboard = () => {
         {/* Main Content Header */}
         <div className="admin-top-header">
           
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+          <button className="admin-hamburger-btn" onClick={() => setIsMobileMenuOpen(true)}>
             ☰
           </button>
 
