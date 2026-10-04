@@ -59,6 +59,10 @@ exports.verifyAndFinalizePhase = async (req, res) => {
         const { testType, tableData } = req.body;
         if (!testType) return res.status(400).json({ message: "testType is required" });
 
+        // Map 'internal_1' to 'Int-1' globally for this function
+        const testMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
+        const dbTestType = testMap[testType] || testType;
+
         // Ensure there is data submitted
         if (!tableData || Object.keys(tableData).length === 0) {
             return res.status(400).json({ message: "Cannot finalize: No student grading data provided." });
@@ -89,13 +93,13 @@ exports.verifyAndFinalizePhase = async (req, res) => {
         }
 
         // If strict verification passes, lock the phase!
-        let settings = await TestSettings.findOne({ testType });
+        let settings = await TestSettings.findOne({ testType: dbTestType });
         if (settings) {
             settings.isFinalized = true;
             settings.isActive = false;
             await settings.save();
         } else {
-            settings = await TestSettings.create({ testType, isFinalized: true, isActive: false });
+            settings = await TestSettings.create({ testType: dbTestType, isFinalized: true, isActive: false });
         }
 
         // SAVE THE DATA TO THE DATABASES!
@@ -104,25 +108,25 @@ exports.verifyAndFinalizePhase = async (req, res) => {
             if (!student) continue;
 
             if (testType.startsWith('internal_')) {
-                // Map 'internal_1' to 'Int-1'
-                const testMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
-                const dbTestType = testMap[testType];
+                const updatePayload = { attendance: data.att || '' };
+                if (data.score !== undefined && data.score !== '') {
+                    updatePayload.score = Number(data.score) || 0;
+                }
                 
                 await InternalTestRecord.findOneAndUpdate(
                     { student: student._id, testType: dbTestType },
-                    { 
-                        attendance: data.att || '',
-                        score: Number(data.score) || 0
-                    },
+                    { $set: updatePayload },
                     { upsert: true, new: true }
                 );
             } else if (testType === 'practical') {
+                const updatePayload = { attendance: data.att || '' };
+                if (data.score !== undefined && data.score !== '') {
+                    updatePayload.score = Number(data.score) || 0;
+                }
+
                 await PracticalRecord.findOneAndUpdate(
                     { student: student._id },
-                    { 
-                        attendance: data.att || '',
-                        score: Number(data.score) || 0
-                    },
+                    { $set: updatePayload },
                     { upsert: true, new: true }
                 );
             } else if (testType === 'ca') {
