@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../styles/dashboard.css';
 import { useUI } from '../context/UIContext';
 import BranchCard from '../components/student/BranchCard';
 import TestInstructions from '../components/student/TestInstructions';
@@ -223,7 +224,7 @@ const StudentDashboard = () => {
             Welcome, {studentName}! 🎖️
           </h1>
           <p style={{ color: '#64748b', margin: '4px 0 0 0', fontSize: '0.95rem', maxWidth: '600px' }}>
-            Your central hub for NCC Value Added Course evaluations. Stay sharp, track your progress, and excel.
+            Unity and Discipline. Your university journey towards excellence, leadership, and honor begins here.
           </p>
         </div>
         
