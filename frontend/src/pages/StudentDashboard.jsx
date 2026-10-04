@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUI } from '../context/UIContext';
+import BranchCard from '../components/student/BranchCard';
+import TestInstructions from '../components/student/TestInstructions';
+import LiveTest from '../components/student/LiveTest';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { showFlash } = useUI();
   
   const [studentName, setStudentName] = useState("");
-  const [isOnboarded, setIsOnboarded] = useState(true); // Default true until fetched
+  const [isOnboarded, setIsOnboarded] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeTab, setActiveTab] = useState('online_test'); // online_test, practical_test, continuous_assessment
   
   const [scores, setScores] = useState(null);
+  const [testSettings, setTestSettings] = useState([]);
   
+  // Test Flow State
+  const [testState, setTestState] = useState('DASHBOARD'); // 'DASHBOARD', 'INSTRUCTIONS', 'LIVE_TEST'
+  const [currentTestType, setCurrentTestType] = useState(null);
+
   const [onboardData, setOnboardData] = useState({
     gender: '', category: '', state: '', guardianContact: '', dob: ''
   });
@@ -20,58 +28,67 @@ const StudentDashboard = () => {
   const [syllabusUrl, setSyllabusUrl] = useState(null);
   const [notesUrl, setNotesUrl] = useState(null);
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/system/settings`);
-        const data = await response.json();
-        if (data) {
-          setSyllabusUrl(data.syllabusUrl);
-          setNotesUrl(data.notesUrl);
-        }
-      } catch (error) {
-        console.error("Failed to fetch system settings");
-      }
-    };
-
-    const fetchStudentData = async () => {
-      const token = localStorage.getItem('studentToken');
-      if (!token) {
+  const fetchStudentData = async () => {
+    const token = localStorage.getItem('studentToken');
+    if (!token) {
+      navigate('/student/login');
+      return;
+    }
+    try {
+      const profileRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const profileData = await profileRes.json();
+      
+      if (profileRes.ok) {
+        setStudentName(profileData.name);
+        setIsOnboarded(profileData.isOnboarded);
+      } else {
         navigate('/student/login');
         return;
       }
-      try {
-        // Fetch Profile
-        const profileRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/me`, {
+
+      if (profileData.isOnboarded) {
+        const scoresRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/dashboard-scores`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const profileData = await profileRes.json();
-        
-        if (profileRes.ok) {
-          setStudentName(profileData.name);
-          setIsOnboarded(profileData.isOnboarded);
-        } else {
-          navigate('/student/login');
-          return;
-        }
-
-        // Fetch Scores
-        if (profileData.isOnboarded) {
-          const scoresRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/dashboard-scores`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const scoresData = await scoresRes.json();
-          if (scoresRes.ok) {
-            setScores(scoresData);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch student data");
+        const scoresData = await scoresRes.json();
+        if (scoresRes.ok) setScores(scoresData);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch student data");
+    }
+  };
 
-    fetchSettings();
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/settings`);
+      const data = await response.json();
+      if (response.ok) {
+        setTestSettings(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch test settings");
+    }
+  };
+
+  const fetchSystemSettings = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/system/settings`);
+      const data = await response.json();
+      if (data) {
+        setSyllabusUrl(data.syllabusUrl);
+        setNotesUrl(data.notesUrl);
+      }
+    } catch (error) {
+      console.error("Failed to fetch system settings");
+    }
+  };
+
+  useEffect(() => {
+    fetchSystemSettings();
     fetchStudentData();
+    fetchSettings();
   }, [navigate]);
 
   const handleOnboardSubmit = async (e) => {
@@ -80,22 +97,14 @@ const StudentDashboard = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/onboard`, {
         method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(onboardData)
       });
       
       if (response.ok) {
         setIsOnboarded(true);
         showFlash("Profile completed successfully!", "success");
-        // Refetch scores
-        const scoresRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/dashboard-scores`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const scoresData = await scoresRes.json();
-        if (scoresRes.ok) setScores(scoresData);
+        fetchStudentData(); // Refresh data
       } else {
         showFlash("Failed to save profile", "error");
       }
@@ -110,13 +119,25 @@ const StudentDashboard = () => {
     navigate('/student/login');
   };
 
+  const getSetting = (type) => testSettings.find(s => s.testType === type) || {};
+
+  const handleStartTestFlow = (testType) => {
+    setCurrentTestType(testType);
+    setTestState('INSTRUCTIONS');
+  };
+
+  const handleTestCompletion = () => {
+    setTestState('DASHBOARD');
+    setCurrentTestType(null);
+    fetchStudentData(); // Refresh scores so it shows "Submitted"
+  };
+
   if (!isOnboarded) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', maxWidth: '500px', width: '100%' }}>
           <h2 style={{ color: '#1e293b', marginBottom: '10px', fontSize: '1.8rem', textAlign: 'center', fontWeight: '800' }}>Complete Your Profile</h2>
           <p style={{ color: '#64748b', marginBottom: '30px', textAlign: 'center', fontSize: '0.95rem' }}>Please fill in the required details before accessing your dashboard.</p>
-          
           <form onSubmit={handleOnboardSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <label style={labelStyle}>Gender</label>
@@ -149,7 +170,6 @@ const StudentDashboard = () => {
               <label style={labelStyle}>Date of Birth</label>
               <input required type="date" value={onboardData.dob} onChange={(e) => setOnboardData({...onboardData, dob: e.target.value})} style={inputStyle} />
             </div>
-            
             <button type="submit" style={{ backgroundColor: '#2563eb', color: 'white', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '10px', transition: 'background-color 0.2s' }}>
               Save & Continue
             </button>
@@ -159,17 +179,46 @@ const StudentDashboard = () => {
     );
   }
 
+  // --- LIVE TEST FLOW OVERRIDE ---
+  if (testState === 'INSTRUCTIONS') {
+    return (
+      <div className="dashboard-page">
+        <TestInstructions 
+          testType={currentTestType} 
+          onAgree={() => setTestState('LIVE_TEST')} 
+        />
+      </div>
+    );
+  }
+
+  if (testState === 'LIVE_TEST') {
+    return (
+      <div className="dashboard-page" style={{ paddingTop: '0' }}> {/* No navbar offset for live test */}
+        <LiveTest 
+          testType={currentTestType} 
+          settings={getSetting(currentTestType)} 
+          onSubmit={handleTestCompletion}
+        />
+      </div>
+    );
+  }
+
+  // --- NORMAL DASHBOARD ---
   return (
     <div className="dashboard-page">
-      
-      {/* Top Bar / Header */}
+      {/* Top Header */}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">
-          Welcome, {studentName}
-        </h1>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <h1 className="dashboard-title">
+            Welcome, {studentName}! 🎖️
+          </h1>
+          <p style={{ color: '#64748b', margin: '4px 0 0 0', fontSize: '0.95rem', maxWidth: '600px' }}>
+            Your central hub for NCC Value Added Course evaluations. Stay sharp, track your progress, and excel.
+          </p>
+        </div>
         
         {/* Profile Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', marginTop: '10px' }}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="profile-menu-btn-rounded"
@@ -192,7 +241,6 @@ const StudentDashboard = () => {
                 if (notesUrl) window.open(notesUrl, '_blank'); 
                 else showFlash("Notes not uploaded yet", "error"); 
               }}>Notes</div>
-              <div style={menuItemStyle} onClick={() => { setShowProfileMenu(false); showFlash("Result clicked", "info"); }}>Result</div>
               <div style={{ ...menuItemStyle, color: '#ef4444', borderTop: '1px solid #f1f5f9', backgroundColor: '#fef2f2' }} onClick={handleLogout}>Logout</div>
             </div>
           )}
@@ -215,28 +263,77 @@ const StudentDashboard = () => {
           </button>
         </div>
 
-        {/* Tab Content */}
-        <div style={{ backgroundColor: 'white', padding: '50px', borderRadius: '24px', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.03)', border: '1px solid #f1f5f9' }}>
+        {/* Tab Content (Branch Cards) */}
+        <div style={{ backgroundColor: '#f8fafc', padding: '0', borderRadius: '0' }}>
           
           {activeTab === 'online_test' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px' }}>
-              <ScoreBox title="Internal-1 Score" score={scores?.online_test?.internal1 || 'N/A'} total="15" color="#3b82f6" />
-              <ScoreBox title="Internal-2 Score" score={scores?.online_test?.internal2 || 'N/A'} total="15" color="#8b5cf6" />
-              <ScoreBox title="Internal-3 Score" score={scores?.online_test?.internal3 || 'N/A'} total="15" color="#ec4899" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+              <BranchCard 
+                title="Internal 1" 
+                testType="internal_1"
+                settings={getSetting('internal_1')}
+                score={scores?.online_test?.internal1}
+                onStartTest={handleStartTestFlow}
+                onViewResult={() => alert(`Result: ${scores?.online_test?.internal1}/15`)}
+              />
+              <BranchCard 
+                title="Internal 2" 
+                testType="internal_2"
+                settings={getSetting('internal_2')}
+                score={scores?.online_test?.internal2}
+                onStartTest={handleStartTestFlow}
+                onViewResult={() => alert(`Result: ${scores?.online_test?.internal2}/15`)}
+              />
+              <BranchCard 
+                title="Internal 3" 
+                testType="internal_3"
+                settings={getSetting('internal_3')}
+                score={scores?.online_test?.internal3}
+                onStartTest={handleStartTestFlow}
+                onViewResult={() => alert(`Result: ${scores?.online_test?.internal3}/15`)}
+              />
             </div>
           )}
 
           {activeTab === 'practical_test' && (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <ScoreBox title="Practical Test Score" score={scores?.practical_test?.score || 'N/A'} total="20" color="#10b981" large />
+               <BranchCard 
+                title="Practical Phase" 
+                testType="practical"
+                settings={getSetting('practical')}
+                score={scores?.practical_test?.score}
+                onStartTest={() => showFlash("Practical tests are not conducted online.", "info")}
+                onViewResult={() => alert(`Result: ${scores?.practical_test?.score}/20`)}
+              />
             </div>
           )}
 
           {activeTab === 'continuous_assessment' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px' }}>
-              <ScoreBox title="Attendance Score" score={scores?.continuous_assessment?.attendance || 'N/A'} total="5" color="#f59e0b" />
-              <ScoreBox title="Assessment Score" score={scores?.continuous_assessment?.assessment || 'N/A'} total="5" color="#14b8a6" />
-              <ScoreBox title="Presentation Score" score={scores?.continuous_assessment?.presentation || 'N/A'} total="5" color="#f43f5e" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+              <BranchCard 
+                title="Attendance" 
+                testType="ca_attendance"
+                settings={getSetting('ca')}
+                score={scores?.continuous_assessment?.attendance}
+                onStartTest={() => showFlash("CA is evaluated offline.", "info")}
+                onViewResult={() => alert(`Result: ${scores?.continuous_assessment?.attendance}/5`)}
+              />
+              <BranchCard 
+                title="Assignment" 
+                testType="ca_assignment"
+                settings={getSetting('ca')}
+                score={scores?.continuous_assessment?.assessment}
+                onStartTest={() => showFlash("CA is evaluated offline.", "info")}
+                onViewResult={() => alert(`Result: ${scores?.continuous_assessment?.assessment}/5`)}
+              />
+              <BranchCard 
+                title="Presentation" 
+                testType="ca_presentation"
+                settings={getSetting('ca')}
+                score={scores?.continuous_assessment?.presentation}
+                onStartTest={() => showFlash("CA is evaluated offline.", "info")}
+                onViewResult={() => alert(`Result: ${scores?.continuous_assessment?.presentation}/5`)}
+              />
             </div>
           )}
 
@@ -246,37 +343,10 @@ const StudentDashboard = () => {
   );
 };
 
-// --- Reusable Styles and Subcomponents ---
-
-const labelStyle = {
-  display: 'block',
-  marginBottom: '8px',
-  color: '#475569',
-  fontSize: '0.95rem',
-  fontWeight: '600'
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '12px 16px',
-  borderRadius: '10px',
-  border: '1px solid #cbd5e1',
-  fontSize: '1rem',
-  color: '#1e293b',
-  backgroundColor: '#f8fafc',
-  boxSizing: 'border-box',
-  outline: 'none',
-  transition: 'border-color 0.2s'
-};
-
-const menuItemStyle = {
-  padding: '14px 20px',
-  cursor: 'pointer',
-  color: '#475569',
-  fontWeight: '600',
-  fontSize: '0.95rem',
-  borderBottom: '1px solid #f8fafc'
-};
+// --- Reusable Styles ---
+const labelStyle = { display: 'block', marginBottom: '8px', color: '#475569', fontSize: '0.95rem', fontWeight: '600' };
+const inputStyle = { width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1rem', color: '#1e293b', backgroundColor: '#f8fafc', boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s' };
+const menuItemStyle = { padding: '14px 20px', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '0.95rem', borderBottom: '1px solid #f8fafc' };
 
 const tabStyle = (isActive) => ({
   padding: '12px 24px',
@@ -290,39 +360,5 @@ const tabStyle = (isActive) => ({
   transition: 'all 0.2s ease-in-out',
   outline: 'none'
 });
-
-const ScoreBox = ({ title, score, total, color, large = false }) => (
-  <div style={{ 
-    backgroundColor: '#ffffff', 
-    border: `1px solid #e2e8f0`,
-    borderRadius: '20px', 
-    padding: large ? '50px' : '40px', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)',
-    minWidth: large ? '450px' : 'auto',
-    transition: 'transform 0.3s ease'
-  }}>
-    {/* Colored top bar for visual hierarchy */}
-    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '8px', backgroundColor: color }}></div>
-    
-    <h3 style={{ color: '#64748b', margin: '0 0 20px 0', fontSize: large ? '1.4rem' : '1.1rem', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
-      {title}
-    </h3>
-    
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-      <span style={{ fontSize: large ? '5rem' : '3.5rem', fontWeight: '900', color: color, lineHeight: '1', letterSpacing: '-2px' }}>
-        {score}
-      </span>
-      <span style={{ fontSize: large ? '1.8rem' : '1.4rem', fontWeight: '700', color: '#cbd5e1' }}>
-        /{total}
-      </span>
-    </div>
-  </div>
-);
 
 export default StudentDashboard;

@@ -3,6 +3,8 @@ const InternalTestRecord = require('../models/InternalTestRecord');
 const PracticalRecord = require('../models/PracticalRecord');
 const ContinuousAssessment = require('../models/ContinuousAssessment');
 const MasterRecord = require('../models/MasterRecord');
+const Question = require('../models/Question');
+const SystemSettings = require('../models/SystemSettings');
 
 exports.getStudentProfile = async (req, res) => {
     try {
@@ -76,5 +78,58 @@ exports.getStudentDashboardScores = async (req, res) => {
     } catch (error) {
         console.error("Dashboard Fetch Error:", error);
         res.status(500).json({ message: "Server error fetching scores" });
+    }
+};
+
+exports.fetchQuestions = async (req, res) => {
+    try {
+        const { testType } = req.params;
+        const settings = await SystemSettings.findOne({ testType });
+        if (!settings || !settings.isActive) {
+            return res.status(403).json({ message: "Test is not active" });
+        }
+        
+        const questions = await Question.find({ testType }).select('-correctOption');
+        res.status(200).json(questions);
+    } catch (error) {
+        console.error("Fetch Questions Error:", error);
+        res.status(500).json({ message: "Error fetching questions" });
+    }
+};
+
+exports.submitTest = async (req, res) => {
+    try {
+        const { testType } = req.params;
+        const { answers } = req.body; 
+        const rollNo = req.user.vac_rollNo;
+
+        const settings = await SystemSettings.findOne({ testType });
+        if (!settings || !settings.isActive) {
+            return res.status(403).json({ message: "Test is not active or closed" });
+        }
+
+        let score = 0;
+        for (const ans of answers) {
+            const question = await Question.findById(ans.questionId);
+            if (question && question.correctOption === ans.selectedOption) {
+                score += 1;
+            }
+        }
+
+        let record = await InternalTestRecord.findOne({ vac_rollNo: rollNo });
+        if (!record) {
+            record = new InternalTestRecord({ vac_rollNo: rollNo, vac_studentId: req.user._id });
+        }
+
+        const typeMap = { 'internal_1': 'internal1', 'internal_2': 'internal2', 'internal_3': 'internal3' };
+        if (typeMap[testType]) {
+            record[typeMap[testType]] = score;
+        }
+        await record.save();
+
+        res.status(200).json({ message: "Test submitted successfully", score });
+    } catch (error) {
+        console.error("Submit Test Error:", error);
+        res.status(500).json({ message: "Error submitting test" });
     }
 };

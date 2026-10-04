@@ -10,5 +10,7 @@ router.use(authMiddleware);
 router.get('/me', studentController.getStudentProfile);
 router.put('/onboard', studentController.onboardStudent);
 router.get('/dashboard-scores', studentController.getStudentDashboardScores);
+router.get('/questions/:testType', studentController.fetchQuestions);
+router.post('/submit-test/:testType', studentController.submitTest);
 
 module.exports = router;
