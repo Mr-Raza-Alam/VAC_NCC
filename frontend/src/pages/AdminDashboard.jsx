@@ -7,8 +7,8 @@ import SystemSection from '../components/admin/SystemSection';
 import AdminSidebar from '../components/admin/AdminSidebar';
 
 const AdminDashboard = () => {
-  const [activeSection, setActiveSection] = useState('system'); // default
-  const [activeSubTab, setActiveSubTab] = useState('home');
+  const [activeSection, setActiveSection] = useState(localStorage.getItem('adminActiveSection') || 'system'); // default
+  const [activeSubTab, setActiveSubTab] = useState(localStorage.getItem('adminActiveSubTab') || 'home');
   const [isWrittenTestOpen, setIsWrittenTestOpen] = useState(false);
   const [isPracticalTestOpen, setIsPracticalTestOpen] = useState(false);
   const [isCAOpen, setIsCAOpen] = useState(false);
@@ -53,6 +53,24 @@ const AdminDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setTestSettings(data);
+        
+        // Sync test states with database
+        setTestStates(prev => {
+          const updated = { ...prev };
+          data.forEach(setting => {
+            let phase = setting.testType;
+            if (phase === 'Int-1') phase = 'internal_1';
+            if (phase === 'Int-2') phase = 'internal_2';
+            if (phase === 'Int-3') phase = 'internal_3';
+            
+            if (setting.isFinalized) {
+              updated[phase] = 'done';
+            } else if (setting.isActive) {
+              updated[phase] = 'active';
+            }
+          });
+          return updated;
+        });
       }
     } catch (err) {
       console.error("Failed to fetch settings", err);
@@ -115,6 +133,8 @@ const AdminDashboard = () => {
 
     setActiveSection(section);
     setActiveSubTab(subTab);
+    localStorage.setItem('adminActiveSection', section);
+    localStorage.setItem('adminActiveSubTab', subTab);
     setIsMobileMenuOpen(false); // Close mobile menu on navigate
   };
 
