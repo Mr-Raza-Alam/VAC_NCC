@@ -5,6 +5,7 @@ const internalTestRecordSchema = new mongoose.Schema({
   testType: { type: String, enum: ['Int-1', 'Int-2', 'Int-3'], required: true },
   attendance: { type: String, enum: ['P', 'A', ''], default: '' },
   score: { type: Number, default: 0 },
+  isSubmitted: { type: Boolean, default: false },
   answers: { type: Map, of: String } // Stores answers like { "q1_id": "Option A" }
 }, { timestamps: true });
 

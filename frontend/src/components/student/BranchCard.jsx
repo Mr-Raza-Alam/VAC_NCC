@@ -5,7 +5,12 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
   const isFinalized = settings?.isFinalized;
   const isActive = settings?.isActive;
   const isScheduled = !!settings?.testDate;
-  const hasSubmitted = score !== undefined && score !== 'N/A';
+  let hasSubmitted = false;
+  if (score && typeof score === 'object') {
+    hasSubmitted = score.isSubmitted;
+  } else {
+    hasSubmitted = score !== undefined && score !== null && score !== 'N/A';
+  }
 
   let statusText = "Not Scheduled Yet";
   let statusColor = "#64748b"; // gray

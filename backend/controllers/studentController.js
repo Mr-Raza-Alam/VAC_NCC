@@ -57,9 +57,9 @@ exports.getStudentDashboardScores = async (req, res) => {
         // Structure the response based on the dashboard tabs we designed
         const dashboardData = {
             online_test: {
-                internal1: internal1 ? internal1.score : 'N/A',
-                internal2: internal2 ? internal2.score : 'N/A',
-                internal3: internal3 ? internal3.score : 'N/A'
+                internal1: internal1 ? { score: internal1.score, isSubmitted: internal1.isSubmitted } : null,
+                internal2: internal2 ? { score: internal2.score, isSubmitted: internal2.isSubmitted } : null,
+                internal3: internal3 ? { score: internal3.score, isSubmitted: internal3.isSubmitted } : null
             },
             practical_test: {
                 score: practical ? practical.score : 'N/A'
@@ -132,7 +132,8 @@ exports.submitTest = async (req, res) => {
             { 
                 score: score,
                 answers: savedAnswers,
-                attendance: 'P' // Mark present if they took the test
+                attendance: 'P', // Mark present if they took the test
+                isSubmitted: true
             },
             { upsert: true, new: true }
         );
