@@ -198,37 +198,40 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
               border: '1px solid #e2e8f0'
             }}>
               <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '20px', lineHeight: '1.6' }}>
-                <span style={{ color: '#3b82f6', marginRight: '8px' }}>Q{index + 1}.</span> {q.text}
+                <span style={{ color: '#3b82f6', marginRight: '8px' }}>Q{index + 1}.</span> {q.questionText}
               </h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {['A', 'B', 'C', 'D'].map(opt => (
-                  <label 
-                    key={opt}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '16px',
-                      borderRadius: '8px',
-                      border: answers[q._id] === opt ? '2px solid #3b82f6' : '1px solid #cbd5e1',
-                      backgroundColor: answers[q._id] === opt ? '#eff6ff' : '#f8fafc',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      fontWeight: answers[q._id] === opt ? '600' : '400',
-                    }}
-                  >
-                    <input 
-                      type="radio" 
-                      name={`q_${q._id}`} 
-                      value={opt}
-                      checked={answers[q._id] === opt}
-                      onChange={() => handleOptionChange(q._id, opt)}
-                      style={{ marginRight: '16px', transform: 'scale(1.2)' }}
-                    />
-                    <span style={{ width: '30px', fontWeight: 'bold', color: '#64748b' }}>{opt})</span>
-                    <span>{q.options[opt]}</span>
-                  </label>
-                ))}
+                {q.options.map((optionText, optIdx) => {
+                  const optionLabel = String.fromCharCode(65 + optIdx); // 0->A, 1->B, 2->C, 3->D
+                  return (
+                    <label 
+                      key={optIdx}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        border: answers[q._id] === optionText ? '2px solid #3b82f6' : '1px solid #cbd5e1',
+                        backgroundColor: answers[q._id] === optionText ? '#eff6ff' : '#f8fafc',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        fontWeight: answers[q._id] === optionText ? '600' : '400',
+                      }}
+                    >
+                      <input 
+                        type="radio" 
+                        name={`q_${q._id}`} 
+                        value={optionText}
+                        checked={answers[q._id] === optionText}
+                        onChange={() => handleOptionChange(q._id, optionText)}
+                        style={{ marginRight: '16px', transform: 'scale(1.2)' }}
+                      />
+                      <span style={{ width: '30px', fontWeight: 'bold', color: '#64748b' }}>{optionLabel})</span>
+                      <span>{optionText}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           ))
