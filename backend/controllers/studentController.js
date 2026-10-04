@@ -4,7 +4,7 @@ const PracticalRecord = require('../models/PracticalRecord');
 const ContinuousAssessment = require('../models/ContinuousAssessment');
 const MasterRecord = require('../models/MasterRecord');
 const Question = require('../models/Question');
-const SystemSettings = require('../models/SystemSettings');
+const TestSettings = require('../models/TestSettings');
 
 exports.getStudentProfile = async (req, res) => {
     try {
@@ -44,28 +44,30 @@ exports.onboardStudent = async (req, res) => {
 
 exports.getStudentDashboardScores = async (req, res) => {
     try {
-        const rollNo = req.user.vac_rollNo;
+        const studentId = req.user.id;
 
         // Fetch all related records for this specific student
-        const internal = await InternalTestRecord.findOne({ vac_rollNo: rollNo });
-        const practical = await PracticalRecord.findOne({ vac_rollNo: rollNo });
-        const ca = await ContinuousAssessment.findOne({ vac_rollNo: rollNo });
-        const master = await MasterRecord.findOne({ vac_rollNo: rollNo });
+        const internal1 = await InternalTestRecord.findOne({ student: studentId, testType: 'Int-1' });
+        const internal2 = await InternalTestRecord.findOne({ student: studentId, testType: 'Int-2' });
+        const internal3 = await InternalTestRecord.findOne({ student: studentId, testType: 'Int-3' });
+        const practical = await PracticalRecord.findOne({ student: studentId });
+        const ca = await ContinuousAssessment.findOne({ student: studentId });
+        const master = await MasterRecord.findOne({ vac_rollNo: req.user.vac_rollNo });
 
         // Structure the response based on the dashboard tabs we designed
         const dashboardData = {
             online_test: {
-                internal1: internal?.internal1 || 'N/A',
-                internal2: internal?.internal2 || 'N/A',
-                internal3: internal?.internal3 || 'N/A'
+                internal1: internal1 ? internal1.score : 'N/A',
+                internal2: internal2 ? internal2.score : 'N/A',
+                internal3: internal3 ? internal3.score : 'N/A'
             },
             practical_test: {
-                score: practical?.practicalMarks || 'N/A'
+                score: practical ? practical.score : 'N/A'
             },
             continuous_assessment: {
-                attendance: ca?.attendanceMarks || 'N/A',
-                assessment: ca?.assessmentMarks || 'N/A',
-                presentation: ca?.presentationMarks || 'N/A'
+                attendance: ca ? ca.attendance : 'N/A',
+                assessment: ca ? ca.assignment : 'N/A',
+                presentation: ca ? ca.presentation : 'N/A'
             },
             finalResult: master ? {
                 totalMarks: master.totalMarks,
@@ -84,12 +86,15 @@ exports.getStudentDashboardScores = async (req, res) => {
 exports.fetchQuestions = async (req, res) => {
     try {
         const { testType } = req.params;
-        const settings = await SystemSettings.findOne({ testType });
+        const testTypeMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
+        const tType = testTypeMap[testType] || testType;
+
+        const settings = await TestSettings.findOne({ testType: tType });
         if (!settings || !settings.isActive) {
             return res.status(403).json({ message: "Test is not active" });
         }
         
-        const questions = await Question.find({ testType }).select('-correctOption');
+        const questions = await Question.find({ testType: tType }).select('-correctOption -correctAnswer');
         res.status(200).json(questions);
     } catch (error) {
         console.error("Fetch Questions Error:", error);
@@ -101,35 +106,96 @@ exports.submitTest = async (req, res) => {
     try {
         const { testType } = req.params;
         const { answers } = req.body; 
-        const rollNo = req.user.vac_rollNo;
+        const studentId = req.user.id;
 
-        const settings = await SystemSettings.findOne({ testType });
+        const testTypeMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
+        const tType = testTypeMap[testType] || testType;
+
+        const settings = await TestSettings.findOne({ testType: tType });
         if (!settings || !settings.isActive) {
             return res.status(403).json({ message: "Test is not active or closed" });
         }
 
         let score = 0;
+        const savedAnswers = {};
         for (const ans of answers) {
+            savedAnswers[ans.questionId] = ans.selectedOption;
             const question = await Question.findById(ans.questionId);
-            if (question && question.correctOption === ans.selectedOption) {
+            // Support both correctAnswer and correctOption based on schema evolution
+            if (question && (question.correctAnswer === ans.selectedOption || question.correctOption === ans.selectedOption)) {
                 score += 1;
             }
         }
 
-        let record = await InternalTestRecord.findOne({ vac_rollNo: rollNo });
-        if (!record) {
-            record = new InternalTestRecord({ vac_rollNo: rollNo, vac_studentId: req.user._id });
-        }
-
-        const typeMap = { 'internal_1': 'internal1', 'internal_2': 'internal2', 'internal_3': 'internal3' };
-        if (typeMap[testType]) {
-            record[typeMap[testType]] = score;
-        }
-        await record.save();
+        await InternalTestRecord.findOneAndUpdate(
+            { student: studentId, testType: tType },
+            { 
+                score: score,
+                answers: savedAnswers,
+                attendance: 'P' // Mark present if they took the test
+            },
+            { upsert: true, new: true }
+        );
 
         res.status(200).json({ message: "Test submitted successfully", score });
     } catch (error) {
         console.error("Submit Test Error:", error);
         res.status(500).json({ message: "Error submitting test" });
+    }
+};
+
+exports.getTestResultDetails = async (req, res) => {
+    try {
+        const studentId = req.user.id;
+        const testType = req.params.testType; 
+
+        const testTypeMap = { internal_1: 'Int-1', internal_2: 'Int-2', internal_3: 'Int-3' };
+        const mappedType = testTypeMap[testType] || testType;
+        const settings = await TestSettings.findOne({ testType: mappedType });
+
+        if (!settings || (!settings.isFinalized && settings.resultsVisibility !== 'ON')) {
+            return res.status(403).json({ message: "Results are not yet published for this test." });
+        }
+
+        const record = await InternalTestRecord.findOne({ student: studentId, testType: mappedType });
+        if (!record) {
+            return res.status(404).json({ message: "No test record found." });
+        }
+
+        const questions = await Question.find({ testType: mappedType }).sort({ createdAt: 1 });
+
+        const resultDetails = questions.map((q, idx) => {
+            const qIdStr = q._id.toString();
+            const studentAns = record.answers && record.answers.get(qIdStr) ? record.answers.get(qIdStr) : 'Not Answered';
+            const isCorrect = studentAns === q.correctAnswer;
+            return {
+                questionNo: `Q${idx + 1}`,
+                questionText: q.questionText,
+                studentAnswer: studentAns,
+                correctAnswer: q.correctAnswer,
+                isCorrect
+            };
+        });
+
+        const student = await VacStudent.findById(studentId).select('name vac_rollNo department');
+
+        res.status(200).json({
+            studentDetails: {
+                name: student.name,
+                rollNo: student.vac_rollNo,
+                department: student.department || 'N/A'
+            },
+            testDetails: {
+                testType: mappedType,
+                score: record.score,
+                total: questions.length,
+                submittedAt: record.updatedAt
+            },
+            resultDetails
+        });
+
+    } catch (err) {
+        console.error("Result Details Error:", err);
+        res.status(500).json({ message: "Server error fetching result details." });
     }
 };

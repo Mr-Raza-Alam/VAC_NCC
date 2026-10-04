@@ -12,5 +12,6 @@ router.put('/onboard', studentController.onboardStudent);
 router.get('/dashboard-scores', studentController.getStudentDashboardScores);
 router.get('/questions/:testType', studentController.fetchQuestions);
 router.post('/submit-test/:testType', studentController.submitTest);
+router.get('/result-details/:testType', studentController.getTestResultDetails);
 
 module.exports = router;

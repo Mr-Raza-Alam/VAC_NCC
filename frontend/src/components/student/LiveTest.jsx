@@ -8,6 +8,37 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   const [timeLeft, setTimeLeft] = useState(settings?.duration ? settings.duration * 60 : 30 * 60); 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [antiCheatTriggered, setAntiCheatTriggered] = useState(false);
+
+  // Restore state resilience from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem(`vac_test_state_${testType}`);
+    if (savedState) {
+        try {
+            const parsed = JSON.parse(savedState);
+            const timePassed = Math.floor((Date.now() - parsed.timestamp) / 1000);
+            const remaining = parsed.timeLeft - timePassed;
+            if (remaining > 0) {
+                setTimeLeft(remaining);
+                setAnswers(parsed.answers || {});
+            } else {
+                setTimeLeft(1); // will trigger auto-submit next tick
+            }
+        } catch (e) {
+            console.error("Failed to restore test state", e);
+        }
+    }
+  }, [testType]);
+
+  // Save state continuously when answers or timeLeft change
+  useEffect(() => {
+      if (isLoading || isSubmitting) return;
+      localStorage.setItem(`vac_test_state_${testType}`, JSON.stringify({
+          answers,
+          timeLeft,
+          timestamp: Date.now()
+      }));
+  }, [answers, timeLeft, testType, isLoading, isSubmitting]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -38,7 +69,7 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleAutoSubmit();
+          handleAutoSubmit("Time is up! Auto-submitting your test...");
           return 0;
         }
         return prev - 1;
@@ -48,12 +79,27 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     return () => clearInterval(timer);
   }, [isLoading, isSubmitting]);
 
+  // Anti-cheating mechanism (Tab visibility)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden' && !isSubmitting && !isLoading) {
+            setAntiCheatTriggered(true);
+            handleAutoSubmit("Test auto-submitted due to tab switching (Anti-Cheating protocol triggered).");
+        }
+    };
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isLoading, isSubmitting]);
+
   const handleOptionChange = (qId, optionStr) => {
     setAnswers(prev => ({ ...prev, [qId]: optionStr }));
   };
 
-  const handleAutoSubmit = () => {
-    showFlash("Time is up! Auto-submitting your test...", "info");
+  const handleAutoSubmit = (msg) => {
+    showFlash(msg || "Auto-submitting your test...", "info");
     submitTestData();
   };
 
@@ -85,6 +131,7 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
       const data = await res.json();
       if (res.ok) {
         showFlash("Test submitted successfully!", "success");
+        localStorage.removeItem(`vac_test_state_${testType}`); // Clear saved state on success
         onSubmit(); // Callback to return to dashboard
       } else {
         showFlash(data.message || "Submission failed", "error");

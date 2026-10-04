@@ -87,7 +87,7 @@ exports.studentRegister = async (req, res) => {
         const token = jwt.sign(
             { id: student._id, vac_rollNo: student.vac_rollNo, role: 'student' },
             process.env.JWT_SECRET || 'secret',
-            { expiresIn: '24h' }
+            { expiresIn: '72h' }
         );
 
         res.status(200).json({ 
@@ -127,7 +127,7 @@ exports.studentLogin = async (req, res) => {
         const token = jwt.sign(
             { id: student._id, vac_rollNo: student.vac_rollNo, role: 'student' },
             process.env.JWT_SECRET || 'secret',
-            { expiresIn: '24h' }
+            { expiresIn: '72h' }
         );
 
         res.status(200).json({

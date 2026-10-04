@@ -8,6 +8,7 @@ import LiveTest from '../components/student/LiveTest';
 import IdCardModal from '../components/student/modals/IdCardModal';
 import NotesModal from '../components/student/modals/NotesModal';
 import SupportModal from '../components/student/modals/SupportModal';
+import ResultModal from '../components/student/modals/ResultModal';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -37,6 +38,9 @@ const StudentDashboard = () => {
   const [showIdModal, setShowIdModal] = useState(false);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultTestType, setResultTestType] = useState(null);
 
   const fetchStudentData = async () => {
     const token = localStorage.getItem('studentToken');
@@ -54,8 +58,13 @@ const StudentDashboard = () => {
         setStudentName(profileData.name);
         setIsOnboarded(profileData.isOnboarded);
         setFullStudentData(profileData);
-      } else {
+      } else if (profileRes.status === 401 || profileRes.status === 403) {
+        // Only force relogin if explicitly unauthorized
+        localStorage.removeItem('studentToken');
         navigate('/student/login');
+        return;
+      } else {
+        console.error("Server returned non-ok status:", profileRes.status);
         return;
       }
 
@@ -130,7 +139,11 @@ const StudentDashboard = () => {
     navigate('/student/login');
   };
 
-  const getSetting = (type) => testSettings.find(s => s.testType === type) || {};
+  const getSetting = (type) => {
+    const testTypeMap = { internal_1: 'Int-1', internal_2: 'Int-2', internal_3: 'Int-3' };
+    const mappedType = testTypeMap[type] || type;
+    return testSettings.find(s => s.testType === mappedType) || {};
+  };
 
   const handleStartTestFlow = (testType) => {
     setCurrentTestType(testType);
@@ -141,6 +154,11 @@ const StudentDashboard = () => {
     setTestState('DASHBOARD');
     setCurrentTestType(null);
     fetchStudentData(); // Refresh scores so it shows "Submitted"
+  };
+
+  const handleViewResult = (type) => {
+    setResultTestType(type);
+    setShowResultModal(true);
   };
 
   if (!isOnboarded) {
@@ -294,7 +312,7 @@ const StudentDashboard = () => {
                 settings={getSetting('internal_1')}
                 score={scores?.online_test?.internal1}
                 onStartTest={handleStartTestFlow}
-                onViewResult={() => alert(`Result: ${scores?.online_test?.internal1}/15`)}
+                onViewResult={() => handleViewResult('internal_1')}
               />
               <BranchCard 
                 title="Internal 2" 
@@ -302,7 +320,7 @@ const StudentDashboard = () => {
                 settings={getSetting('internal_2')}
                 score={scores?.online_test?.internal2}
                 onStartTest={handleStartTestFlow}
-                onViewResult={() => alert(`Result: ${scores?.online_test?.internal2}/15`)}
+                onViewResult={() => handleViewResult('internal_2')}
               />
               <BranchCard 
                 title="Internal 3" 
@@ -310,7 +328,7 @@ const StudentDashboard = () => {
                 settings={getSetting('internal_3')}
                 score={scores?.online_test?.internal3}
                 onStartTest={handleStartTestFlow}
-                onViewResult={() => alert(`Result: ${scores?.online_test?.internal3}/15`)}
+                onViewResult={() => handleViewResult('internal_3')}
               />
             </div>
           )}
@@ -364,6 +382,7 @@ const StudentDashboard = () => {
       {showIdModal && <IdCardModal studentData={fullStudentData} onClose={() => setShowIdModal(false)} />}
       {showNotesModal && <NotesModal settings={systemSettingsData} onClose={() => setShowNotesModal(false)} />}
       {showSupportModal && <SupportModal onClose={() => setShowSupportModal(false)} />}
+      <ResultModal isOpen={showResultModal} onClose={() => setShowResultModal(false)} testType={resultTestType} />
 
     </div>
   );

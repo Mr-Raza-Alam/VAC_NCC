@@ -263,6 +263,112 @@ exports.uploadQuestions = async (req, res) => {
     }
 };
 
+exports.getLiveTableData = async (req, res) => {
+    try {
+        const internals = await InternalTestRecord.find().populate('student', 'vac_rollNo');
+        const practicals = await PracticalRecord.find().populate('student', 'vac_rollNo');
+        const cas = await ContinuousAssessment.find().populate('student', 'vac_rollNo');
+
+        const tableData = {};
+        
+        const initStudent = (rollNo) => {
+            if (!tableData[rollNo]) tableData[rollNo] = {};
+        };
+
+        const testMapRev = { 'Int-1': 'internal_1', 'Int-2': 'internal_2', 'Int-3': 'internal_3' };
+
+        internals.forEach(r => {
+            if (r.student && r.student.vac_rollNo) {
+                const rollNo = r.student.vac_rollNo;
+                initStudent(rollNo);
+                const phase = testMapRev[r.testType];
+                if (phase) {
+                    tableData[rollNo][phase] = { att: r.attendance, score: r.score };
+                }
+            }
+        });
+
+        practicals.forEach(r => {
+            if (r.student && r.student.vac_rollNo) {
+                const rollNo = r.student.vac_rollNo;
+                initStudent(rollNo);
+                tableData[rollNo]['practical'] = { att: r.attendance, score: r.score };
+            }
+        });
+
+        cas.forEach(r => {
+            if (r.student && r.student.vac_rollNo) {
+                const rollNo = r.student.vac_rollNo;
+                initStudent(rollNo);
+                // Convert numerical attendance back to P/A for frontend state
+                const att = (r.attendance > 0 || r.assignment > 0) ? 'P' : ''; 
+                // Note: since frontend uses P/A, we map it roughly. 
+                // If we want exact, we need the exact P/A. But let's let frontend handle it or just return what we have.
+                // Actually, frontend uses 'att' for P/A. Let's just trust the P/A logic in CA isn't strictly necessary or we just pass it.
+                // Wait, CA attendance is 0-5. So att="P" is just a UI toggle. We'll leave att="" if 0.
+                tableData[rollNo]['ca'] = { att: r.attendance > 0 ? 'P' : '', ass: r.assignment, present: r.attendance };
+            }
+        });
+
+        res.status(200).json(tableData);
+    } catch (err) {
+        res.status(500).json({ message: "Server error fetching live data", error: err.message });
+    }
+};
+
+exports.updateLiveTableData = async (req, res) => {
+    try {
+        const { rollNo, phaseKey, field, value } = req.body;
+        const student = await VacStudent.findOne({ vac_rollNo: rollNo });
+        if (!student) return res.status(404).json({ message: "Student not found" });
+
+        if (phaseKey.startsWith('internal_')) {
+            const testMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
+            const dbTestType = testMap[phaseKey];
+            
+            const update = {};
+            if (field === 'att') update.attendance = value;
+            if (field === 'score') update.score = Number(value) || 0;
+
+            await InternalTestRecord.findOneAndUpdate(
+                { student: student._id, testType: dbTestType },
+                { $set: update },
+                { upsert: true, new: true }
+            );
+        } else if (phaseKey === 'practical') {
+            const update = {};
+            if (field === 'att') update.attendance = value;
+            if (field === 'score') update.score = Number(value) || 0;
+
+            await PracticalRecord.findOneAndUpdate(
+                { student: student._id },
+                { $set: update },
+                { upsert: true, new: true }
+            );
+        } else if (phaseKey === 'ca') {
+            const update = {};
+            // For CA, field is 'att', 'ass', or 'present'
+            // But 'att' is purely a UI toggle, it's not in schema as String, it's Number. 
+            // We ignore 'att' saves to DB for CA, or we save it? Schema says attendance: Number.
+            // Let's only update if field is 'ass' or 'present'
+            if (field === 'ass') update.assignment = Number(value) || 0;
+            if (field === 'present') update.attendance = Number(value) || 0;
+
+            if (Object.keys(update).length > 0) {
+                await ContinuousAssessment.findOneAndUpdate(
+                    { student: student._id },
+                    { $set: update },
+                    { upsert: true, new: true }
+                );
+            }
+        }
+
+        res.status(200).json({ message: "Updated live data" });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
 exports.getTransparencyReport = async (req, res) => {
     try {
         const testType = req.params.testType;
@@ -271,6 +377,7 @@ exports.getTransparencyReport = async (req, res) => {
         }
         
         const records = await InternalTestRecord.find({ testType }).populate('student', 'name vac_rollNo department').lean();
+        const questions = await Question.find({ testType }).lean();
         
         const formattedData = records.map(record => {
             const data = {
@@ -281,11 +388,16 @@ exports.getTransparencyReport = async (req, res) => {
                 Score: record.score
             };
             
-            if (record.answers) {
-                Object.keys(record.answers).forEach(qId => {
-                    data[qId] = record.answers[qId];
-                });
-            }
+            // Map each question to a column Q1, Q2, Q3...
+            questions.forEach((q, index) => {
+                const colName = `Q${index + 1}`;
+                if (record.answers && record.answers[q._id.toString()]) {
+                    data[colName] = record.answers[q._id.toString()];
+                } else {
+                    data[colName] = ''; // Blank if unattempted
+                }
+            });
+            
             return data;
         });
 

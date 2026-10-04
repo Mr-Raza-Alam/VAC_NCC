@@ -4,7 +4,7 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
   // Determine state
   const isFinalized = settings?.isFinalized;
   const isActive = settings?.isActive;
-  const isScheduled = !!settings?.scheduledDate;
+  const isScheduled = !!settings?.testDate;
   const hasSubmitted = score !== undefined && score !== 'N/A';
 
   let statusText = "Not Scheduled Yet";
@@ -31,8 +31,7 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
       </button>
     );
   } else if (isScheduled) {
-    const d = new Date(settings.scheduledDate);
-    statusText = `Scheduled for: ${d.toLocaleDateString()} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    statusText = `Scheduled for: ${settings.testDate} at ${settings.startTime || 'TBD'}`;
     statusColor = "#3b82f6"; // blue
   }
 

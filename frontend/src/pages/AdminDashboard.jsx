@@ -71,9 +71,22 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchLiveData = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/live-data`);
+      if (response.ok) {
+        const data = await response.json();
+        setTableData(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch live table data", err);
+    }
+  };
+
   useEffect(() => {
     fetchStudents();
     fetchSettings();
+    fetchLiveData();
   }, []);
 
   const getSetting = (type) => testSettings.find(s => s.testType === type) || {};
@@ -220,6 +233,13 @@ const AdminDashboard = () => {
         }
       }
     }));
+
+    // Instantly sync the change to the backend so it persists across devices (sessions)
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/live-data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollNo, phaseKey, field, value })
+    }).catch(err => console.error("Failed to sync live data", err));
   };
 
   const renderContent = () => {

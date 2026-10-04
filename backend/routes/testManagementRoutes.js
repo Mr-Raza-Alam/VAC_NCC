@@ -13,5 +13,6 @@ router.post('/verify-phase', testManagementController.verifyAndFinalizePhase);
 router.get('/master-results', testManagementController.getMasterResults);
 router.get('/transparency-report/:testType', testManagementController.getTransparencyReport);
 router.post('/upload-questions', upload.single('csvFile'), testManagementController.uploadQuestions);
-
+router.get('/live-data', testManagementController.getLiveTableData);
+router.post('/live-data', testManagementController.updateLiveTableData);
 module.exports = router;
