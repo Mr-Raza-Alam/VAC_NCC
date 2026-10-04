@@ -272,7 +272,19 @@ const StudentDashboard = () => {
         </div>
 
         {/* Tab Content (Branch Cards) */}
-        <div style={{ backgroundColor: '#f8fafc', padding: '0', borderRadius: '0' }}>
+        <div style={{ 
+          padding: '30px', 
+          backgroundColor: '#f1f5f9', 
+          borderLeft: '4px solid #94a3b8', 
+          borderTop: '1px solid #e2e8f0',
+          borderBottomLeftRadius: '12px',
+          borderBottomRightRadius: '12px',
+          borderTopRightRadius: '12px',
+          position: 'relative',
+          marginTop: '-1px' // Overlap the bottom border of the tabs
+        }}>
+          
+          <div style={{ position: 'absolute', top: '-1px', left: 0, width: '20px', height: '4px', backgroundColor: '#94a3b8' }}></div>
           
           {activeTab === 'online_test' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>

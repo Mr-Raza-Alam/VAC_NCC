@@ -15,8 +15,9 @@
 }
 
 .dashboard-header {
-  height: 70px;
-  padding: 0 40px;
+  min-height: 80px;
+  height: auto;
+  padding: 16px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
