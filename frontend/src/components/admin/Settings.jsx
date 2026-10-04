@@ -24,7 +24,7 @@ const Settings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings`);
       if (response.ok) {
         const data = await response.json();
         setBroadcast({
@@ -40,7 +40,7 @@ const Settings = () => {
 
   const fetchAuditLogs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/settings/audit-logs');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/audit-logs`);
       if (response.ok) {
         const data = await response.json();
         setAuditLogs(data);
@@ -53,7 +53,7 @@ const Settings = () => {
   const handleUpdateBroadcast = async () => {
     showLoader();
     try {
-      const response = await fetch('http://localhost:5000/api/settings/broadcast', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/broadcast`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -78,7 +78,7 @@ const Settings = () => {
   const handleStopBroadcast = async () => {
     showLoader();
     try {
-      const response = await fetch('http://localhost:5000/api/settings/broadcast', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/broadcast`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ broadcastActive: false })
@@ -108,7 +108,7 @@ const Settings = () => {
 
     showLoader();
     try {
-      const response = await fetch('http://localhost:5000/api/settings/reset', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -39,3 +39,6 @@ app.use('/api/settings', settingsRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Export the Express API for Vercel Serverless Functions
+module.exports = app;

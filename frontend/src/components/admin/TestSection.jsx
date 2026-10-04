@@ -12,7 +12,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
       const testTypeMap = { internal_1: 'Int-1', internal_2: 'Int-2', internal_3: 'Int-3' };
       const tType = testTypeMap[phaseKey];
       
-      const response = await fetch(`http://localhost:5000/api/test-management/transparency-report/${tType}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/transparency-report/${tType}`);
       const data = await response.json();
       
       if (!response.ok) throw new Error(data.message || 'Failed to fetch report');

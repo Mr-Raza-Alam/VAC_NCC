@@ -23,7 +23,7 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
         const fetchMasterData = async () => {
             showLoader();
             try {
-                const response = await fetch('http://localhost:5000/api/test-management/master-results');
+                const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/master-results`);
                 if (response.ok) {
                     const data = await response.json();
                     setMasterData(data);
@@ -48,7 +48,7 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     setIsUploading(true);
     showLoader();
     try {
-      const response = await fetch('http://localhost:5000/api/record/upload-vac-students', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/upload-vac-students`, {
         method: 'POST',
         body: formData
       });
@@ -71,7 +71,7 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     e.preventDefault();
     showLoader();
     try {
-      const response = await fetch(`http://localhost:5000/api/record/vac-students/${editingStudent.vac_rollNo}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/${editingStudent.vac_rollNo}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingStudent)
@@ -94,7 +94,7 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
   const handleDelete = async (rollNo) => {
     showLoader();
     try {
-      const response = await fetch(`http://localhost:5000/api/record/vac-students/${rollNo}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/${rollNo}`, {
         method: 'DELETE'
       });
       const data = await response.json();

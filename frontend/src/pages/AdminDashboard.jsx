@@ -47,7 +47,7 @@ const AdminDashboard = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/test-management/settings');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/settings`);
       if (response.ok) {
         const data = await response.json();
         setTestSettings(data);
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/record/vac-students');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students`);
       if (response.ok) {
         const data = await response.json();
         setStudents(data);
@@ -161,7 +161,7 @@ const AdminDashboard = () => {
            phaseDataToVerify[st.vac_rollNo] = stData;
         });
 
-        const response = await fetch('http://localhost:5000/api/test-management/verify-phase', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/verify-phase`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ testType: phase, tableData: phaseDataToVerify })

@@ -20,7 +20,7 @@ const RoleManagement = () => {
   const fetchAdmins = async () => {
     showLoader();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/admins');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/admins`);
       if (response.ok) {
         const data = await response.json();
         setAdmins(data);
@@ -52,7 +52,7 @@ const RoleManagement = () => {
     setAdmins(admins.map(a => a._id === adminId ? { ...a, permissions: updatedPermissions } : a));
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/admins/${adminId}/permissions`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/admins/${adminId}/permissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ permissions: updatedPermissions })

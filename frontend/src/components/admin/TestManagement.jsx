@@ -24,7 +24,7 @@ const TestManagement = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/test-management/settings/${testType}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/settings/${testType}`);
       if (response.ok) {
         const data = await response.json();
         setDuration(data.duration || 30);
@@ -44,7 +44,7 @@ const TestManagement = () => {
   const handleSaveSettings = async () => {
     showLoader();
     try {
-      const response = await fetch(`http://localhost:5000/api/test-management/settings`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +76,7 @@ const TestManagement = () => {
 
     showLoader();
     try {
-      const response = await fetch(`http://localhost:5000/api/test-management/upload-questions`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/upload-questions`, {
         method: 'POST',
         body: formData // No Content-Type header, fetch sets it automatically with boundary for FormData
       });
@@ -99,7 +99,7 @@ const TestManagement = () => {
 
     showLoader();
     try {
-      const response = await fetch(`http://localhost:5000/api/system/upload-document`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/system/upload-document`, {
         method: 'POST',
         body: formData
       });

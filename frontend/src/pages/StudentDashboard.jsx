@@ -23,7 +23,7 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/system/settings');
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/system/settings`);
         const data = await response.json();
         if (data) {
           setSyllabusUrl(data.syllabusUrl);
@@ -42,7 +42,7 @@ const StudentDashboard = () => {
       }
       try {
         // Fetch Profile
-        const profileRes = await fetch('http://localhost:5000/api/student/me', {
+        const profileRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const profileData = await profileRes.json();
@@ -57,7 +57,7 @@ const StudentDashboard = () => {
 
         // Fetch Scores
         if (profileData.isOnboarded) {
-          const scoresRes = await fetch('http://localhost:5000/api/student/dashboard-scores', {
+          const scoresRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/dashboard-scores`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const scoresData = await scoresRes.json();
@@ -78,7 +78,7 @@ const StudentDashboard = () => {
     e.preventDefault();
     const token = localStorage.getItem('studentToken');
     try {
-      const response = await fetch('http://localhost:5000/api/student/onboard', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/onboard`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const StudentDashboard = () => {
         setIsOnboarded(true);
         showFlash("Profile completed successfully!", "success");
         // Refetch scores
-        const scoresRes = await fetch('http://localhost:5000/api/student/dashboard-scores', {
+        const scoresRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/student/dashboard-scores`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const scoresData = await scoresRes.json();
