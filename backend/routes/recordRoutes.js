@@ -3,7 +3,7 @@ const multer = require('multer');
 const recordController = require('../controllers/recordController');
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/uploads/' });
 
 router.post('/upload-vac-students', upload.single('csvFile'), recordController.uploadVacStudents);
 router.get('/vac-students', recordController.getVacStudents);

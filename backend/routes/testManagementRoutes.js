@@ -4,7 +4,7 @@ const testManagementController = require('../controllers/testManagementControlle
 
 const router = express.Router();
 // Multer setup for temporary storage of uploaded CSVs
-const upload = multer({ dest: 'uploads/' }); 
+const upload = multer({ dest: '/tmp/uploads/' }); 
 
 router.post('/settings', testManagementController.saveSettings);
 router.get('/settings', testManagementController.getAllSettings);

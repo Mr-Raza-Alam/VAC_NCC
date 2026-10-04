@@ -4,7 +4,7 @@ const systemController = require('../controllers/systemController');
 
 const router = express.Router();
 // Use multer to handle multipart/form-data for file uploads
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: '/tmp/uploads/' });
 
 // GET system settings (including document URLs)
 router.get('/settings', systemController.getSettings);
