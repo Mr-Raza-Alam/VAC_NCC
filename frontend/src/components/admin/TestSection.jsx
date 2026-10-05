@@ -234,12 +234,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
                        <button onClick={() => handleTestStateChange(phaseKey, 'active')} style={{ backgroundColor: '#2563eb', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                          ▶ Activate Test
                        </button>
-                       <button onClick={() => {
-                           const reason = window.prompt("Please provide a reason for canceling this test:");
-                           if (reason !== null) {
-                               handleTestStateChange(phaseKey, 'canceled', reason);
-                           }
-                       }} style={{ backgroundColor: '#ef4444', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                       <button onClick={() => handleTestStateChange(phaseKey, 'canceled')} style={{ backgroundColor: '#ef4444', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                          ✖ Cancel Test
                        </button>
                      </div>

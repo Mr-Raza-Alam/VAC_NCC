@@ -345,10 +345,22 @@ const AdminDashboard = () => {
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }}>
           <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', animation: 'slideInRight 0.3s ease-out' }}>
             <h3 style={{ margin: '0 0 16px 0', color: '#1e293b', fontSize: '1.4rem' }}>{confirmDialog.title}</h3>
-            <p style={{ color: '#475569', marginBottom: '24px', lineHeight: '1.5' }}>{confirmDialog.message}</p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <p style={{ color: '#475569', marginBottom: '16px', lineHeight: '1.5' }}>{confirmDialog.message}</p>
+            
+            {confirmDialog.type === 'cancel' && (
+              <input 
+                type="text" 
+                placeholder="Enter reason for cancellation..."
+                value={confirmDialog.reason || ''}
+                onChange={(e) => setConfirmDialog({...confirmDialog, reason: e.target.value})}
+                style={{ width: '100%', padding: '10px', marginBottom: '24px', border: '1px solid #cbd5e1', borderRadius: '6px', boxSizing: 'border-box' }}
+                autoFocus
+              />
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: confirmDialog.type !== 'cancel' ? '24px' : '0' }}>
               <button 
-                onClick={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                onClick={() => setConfirmDialog({ ...confirmDialog, isOpen: false, reason: '' })}
                 style={{ padding: '10px 16px', backgroundColor: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 Cancel
