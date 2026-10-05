@@ -22,9 +22,18 @@ const StudentDashboard = () => {
   const [scores, setScores] = useState(null);
   const [testSettings, setTestSettings] = useState([]);
   
-  // Test Flow State
-  const [testState, setTestState] = useState('DASHBOARD'); // 'DASHBOARD', 'INSTRUCTIONS', 'LIVE_TEST'
-  const [currentTestType, setCurrentTestType] = useState(null);
+  // Test Flow State Persistence
+  const [testState, setTestState] = useState(() => sessionStorage.getItem('student_testState') || 'DASHBOARD'); 
+  const [currentTestType, setCurrentTestType] = useState(() => sessionStorage.getItem('student_testType') || null);
+
+  useEffect(() => {
+    sessionStorage.setItem('student_testState', testState);
+    if (currentTestType) {
+        sessionStorage.setItem('student_testType', currentTestType);
+    } else {
+        sessionStorage.removeItem('student_testType');
+    }
+  }, [testState, currentTestType]);
 
   const [onboardData, setOnboardData] = useState({
     gender: '', category: '', state: '', guardianContact: '', dob: ''
