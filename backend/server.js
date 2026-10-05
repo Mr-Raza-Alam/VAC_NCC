@@ -8,11 +8,37 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/vac_ncc';
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+if (!MONGO_URI && process.env.VERCEL) {
+    console.error("CRITICAL ERROR: MONGO_URI environment variable is not set in Vercel!");
+}
+
+// Serverless-optimized MongoDB Connection
+let isConnected = false;
+
+const connectDB = async () => {
+    if (isConnected) {
+        return;
+    }
+    
+    try {
+        const dbUri = MONGO_URI || 'mongodb://127.0.0.1:27017/vac_ncc';
+        const db = await mongoose.connect(dbUri, {
+            serverSelectionTimeoutMS: 5000, // Fail early if no connection
+        });
+        isConnected = db.connections[0].readyState === 1;
+        console.log('Connected to MongoDB');
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+    }
+};
+
+// Middleware to ensure DB connection before handling requests
+app.use(async (req, res, next) => {
+    await connectDB();
+    next();
+});
 
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
