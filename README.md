@@ -4,27 +4,27 @@ A comprehensive, full-stack Value Added Course (VAC) Management Portal designed 
 
 ---
 
-## 👥 Two Kinds of Users
+## ✨ Key Features
 
-This portal is built for two distinct user roles, each with their own specialized interface, security clearance, and set of features.
+This portal is strictly segregated into two core experiences: The Admin Interface (for faculty/CTOs) and the Student Dashboard (for candidates).
 
-### 1. Admin Users (Lead Admin & Sub-Admins)
-Administrators manage the portal, configure exams, evaluate students, and oversee system operations.
+### 👨‍💼 Admin Features
 * **Role-Based Access Control (RBAC):** The 'Lead Admin' can dynamically assign specific modules to other admins (e.g., CTOs). Sub-admins will only see the sections of the portal they are authorized to access.
-* **Test & Evaluation Management:** Admins can configure test dates, timings, and cut-off marks. They manage the flow of the evaluation phases (Internal 1, 2, 3, Practical, and Continuous Assessment).
-* **Live Test Engine configuration:** Admins upload questions via CSV, and activate the "Live Test" windows for students.
-* **Master Records:** Automatically compile and calculate final grades based on uploaded test and attendance data, allowing admins to search, filter, and track student performance globally.
-* **Bulk Data Upload (CSV):** Automatically process and store thousands of student records and test scores via simple CSV uploads.
-* **Global Settings & Broadcasts:** Admins can pin live broadcast messages across the student portal.
-* **Database Reset Options:** The Lead Admin has access to highly secure, password-protected database reset tools (Nuclear Reset) to clear data for new batches, backed by an immutable Audit Log.
+* **Intelligent Test Scheduling:** Admins can set Test Windows (Date, Start Time, End Time). These schedules are instantly pushed to the database and cleanly formatted into human-readable 12-hour AM/PM schedules on the student's dashboard.
+* **Strict Test Activation & Cancellation:** Total control over live exams. The portal separates "Scheduling" from "Activating". Admins must manually activate a test to unlock it for students, preventing premature access. Tests can also be explicitly "Canceled" with a custom admin reason seamlessly displayed in the UI.
+* **Automated Master Records (Best of 2):** The system automatically compiles all records and dynamically calculates final grades. It specifically calculates the Internal Score (Int-Score) by automatically picking the "Best 2 out of 3" internal tests.
+* **Finalize & Publish:** A dedicated Finalize button locks the test phase, prevents further submissions, and instantly publishes the results (or generic "Results Published" status depending on settings) to the students.
+* **Bulk Data Upload (CSV):** Automatically process and store thousands of student records and test question banks via simple, error-handled CSV uploads.
+* **Global Settings & Broadcasts:** Admins can pin live broadcast messages across the student portal in real time.
+* **Immutable Audit Logs & Database Reset:** The Lead Admin has access to highly secure, password-protected database reset tools (Nuclear Reset) to clear data for new batches, backed by an immutable Audit Log.
 
-### 2. VAC_Student Users
-Students are the end-users who consume course material, take tests, and view their evaluations.
-* **Verified Registration:** Students can only register if their `vac_rollNo` was pre-authorized by an admin via CSV upload.
-* **Interactive "Branch" Dashboard:** A beautiful, mobile-first UI featuring separate tabs for **Online-Test**, **Practical-Test**, and **Continuous Assessment**. Each tab branches into its sub-components (Internal 1, 2, 3), dynamically reacting to admin schedules.
-* **Live Test Engine:** When a test is active, students enter a secure Live Test mode featuring a sticky countdown timer. The backend strips correct answers from the network requests to prevent cheating, and auto-submits when the timer hits zero.
+### 🎓 Student Features
+* **Verified Registration System:** Students can only register and access the portal if their exact `vac_rollNo` was pre-authorized and uploaded by an admin.
+* **Interactive "Branch" Dashboard:** A beautiful, responsive, mobile-first UI featuring separate tabs for **Online-Test**, **Practical-Test**, and **Continuous Assessment**. 
+* **Dynamic Status Cards:** The dashboard elegantly branches into sub-components (Internal 1, 2, 3), dynamically reacting to admin configurations (e.g., "Not Scheduled Yet", "Scheduled: 10:00 AM - 11:30 AM", "LIVE", "Canceled", or "Results Published").
+* **Secure Live Test Engine:** When a test is active, students enter a secure Live Test mode featuring a sticky countdown timer. The backend strips correct answers from the network requests to prevent cheating, and auto-submits exactly when the timer hits zero.
 * **Utility Profile Menu:** Students can pull up their digital **VAC Identity Card**, view the entire **Syllabus**, download study material from a **5-Unit Notes Modal**, and contact the lead developer via a **Technical Support Modal**.
-* **Profile Onboarding:** First-time logins require the student to complete a mandatory onboarding form (demographics, contact info, etc.).
+* **Profile Onboarding:** First-time logins require the student to complete a mandatory, clean onboarding flow (demographics, contact info, etc.) before gaining dashboard access.
 
 ---
 
