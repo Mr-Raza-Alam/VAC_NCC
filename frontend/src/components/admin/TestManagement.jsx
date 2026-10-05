@@ -70,6 +70,31 @@ const TestManagement = () => {
     }
   };
 
+  const handleClearWindow = async () => {
+    setTestDate('');
+    setStartTime('');
+    setEndTime('');
+    showLoader();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testType,
+          testDate: null,
+          startTime: null,
+          endTime: null,
+        })
+      });
+      if (response.ok) showFlash("Test window cleared from database!", "success");
+      else showFlash("Error clearing window", "error");
+    } catch (error) {
+      showFlash("Server error", "error");
+    } finally {
+      hideLoader();
+    }
+  };
+
   const handleUploadCSV = async () => {
     if (!csvFile) return showFlash("Please select a CSV file first!", "error");
     
@@ -246,7 +271,7 @@ const TestManagement = () => {
               SAVE WINDOW
             </button>
             <button 
-              onClick={() => { setTestDate(''); setStartTime(''); setEndTime(''); setIsFinalized(false); }} 
+              onClick={handleClearWindow}
               style={{ backgroundColor: '#b91c1c', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
             >
               CLEAR WINDOW

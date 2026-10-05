@@ -1,6 +1,15 @@
 import React from 'react';
 
 const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResult }) => {
+  const formatTime12Hour = (time24) => {
+    if (!time24) return 'TBD';
+    const [hours, minutes] = time24.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+  };
+
   // Determine state
   const isFinalized = settings?.isFinalized;
   const isActive = settings?.isActive;
@@ -44,7 +53,7 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
       </button>
     );
   } else if (isScheduled) {
-    statusText = `Scheduled for: ${settings.testDate} at ${settings.startTime || 'TBD'}`;
+    statusText = `Scheduled: ${settings.testDate} | ${formatTime12Hour(settings.startTime)} - ${formatTime12Hour(settings.endTime)}`;
     statusColor = "#3b82f6"; // blue
   }
 
