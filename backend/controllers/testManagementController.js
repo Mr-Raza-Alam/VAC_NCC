@@ -186,17 +186,18 @@ exports.getMasterResults = async (req, res) => {
             const prac = mapPrac[st.vac_rollNo];
             const ca = mapCA[st.vac_rollNo];
 
-            // Safely calculate Int-Score (sum of Int-1, Int-2, Int-3)
-            let intScore = 0;
-            if (i1 && i1.attendance === 'P') intScore += i1.score;
-            if (i2 && i2.attendance === 'P') intScore += i2.score;
-            if (i3 && i3.attendance === 'P') intScore += i3.score;
+            // Calculate Int-Score (Average of best 2 out of 3)
+            let s1 = (i1 && i1.attendance === 'P') ? (i1.score || 0) : 0;
+            let s2 = (i2 && i2.attendance === 'P') ? (i2.score || 0) : 0;
+            let s3 = (i3 && i3.attendance === 'P') ? (i3.score || 0) : 0;
+
+            const scores = [s1, s2, s3].sort((a, b) => b - a); // Sort descending
+            let intScore = (scores[0] + scores[1]) / 2;
 
             // CA Total
             let caScore = 0;
             if (ca) {
-                // If the student was present in CA phase (we assume if they exist and have scores)
-                caScore = (ca.assignment || 0) + (ca.attendance || 0); // we used 'attendance' for 'present'
+                caScore = (ca.assignment || 0) + (ca.attendance || 0) + (ca.presentation || 0);
             }
 
             // Practical
