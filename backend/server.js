@@ -14,30 +14,41 @@ if (!MONGO_URI && process.env.VERCEL) {
     console.error("CRITICAL ERROR: MONGO_URI environment variable is not set in Vercel!");
 }
 
-// Serverless-optimized MongoDB Connection
-let isConnected = false;
-
 const connectDB = async () => {
-    if (isConnected) {
+    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    if (mongoose.connection.readyState >= 1) {
         return;
     }
     
-    try {
-        const dbUri = MONGO_URI || 'mongodb://127.0.0.1:27017/vac_ncc';
-        const db = await mongoose.connect(dbUri, {
-            serverSelectionTimeoutMS: 5000, // Fail early if no connection
-        });
-        isConnected = db.connections[0].readyState === 1;
-        console.log('Connected to MongoDB');
-    } catch (err) {
-        console.error('MongoDB connection error:', err);
-    }
+    const dbUri = MONGO_URI || 'mongodb://127.0.0.1:27017/vac_ncc';
+    await mongoose.connect(dbUri, {
+        serverSelectionTimeoutMS: 5000, // Fail early if no connection
+    });
+    console.log('Connected to MongoDB');
 };
 
 // Middleware to ensure DB connection before handling requests
 app.use(async (req, res, next) => {
-    await connectDB();
-    next();
+    // Explicit diagnostic for missing env var
+    if (!MONGO_URI && process.env.VERCEL) {
+        return res.status(500).json({ 
+            message: "CRITICAL FIX NEEDED: MONGO_URI environment variable is missing. You must add your MongoDB connection string to Vercel Dashboard -> Settings -> Environment Variables." 
+        });
+    }
+
+    try {
+        await connectDB();
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(500).json({ message: "Failed to establish database connection. Connection state: " + mongoose.connection.readyState });
+        }
+        next();
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+        return res.status(500).json({ 
+            message: "MongoDB Connection Error. Ensure your Atlas IP is whitelisted (0.0.0.0/0) and the URI is correct.",
+            error: err.message
+        });
+    }
 });
 
 const authRoutes = require('./routes/authRoutes');
