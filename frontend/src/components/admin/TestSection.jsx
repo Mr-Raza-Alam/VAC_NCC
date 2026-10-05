@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUI } from '../../context/UIContext';
 
-const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange, tableData, handleTableDataChange }) => {
+const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange, tableData, handleTableDataChange, testSettings }) => {
   const { showFlash, showLoader, hideLoader } = useUI();
   const [filterLetter, setFilterLetter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -230,9 +230,19 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
                return (
                  <>
                    {currentState === 'pending' && (
-                     <button onClick={() => handleTestStateChange(phaseKey, 'active')} style={{ backgroundColor: '#2563eb', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                       ▶ Activate Test
-                     </button>
+                     <div style={{ display: 'flex', gap: '10px' }}>
+                       <button onClick={() => handleTestStateChange(phaseKey, 'active')} style={{ backgroundColor: '#2563eb', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                         ▶ Activate Test
+                       </button>
+                       <button onClick={() => {
+                           const reason = window.prompt("Please provide a reason for canceling this test:");
+                           if (reason !== null) {
+                               handleTestStateChange(phaseKey, 'canceled', reason);
+                           }
+                       }} style={{ backgroundColor: '#ef4444', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                         ✖ Cancel Test
+                       </button>
+                     </div>
                    )}
                    {currentState === 'active' && (
                      <>
@@ -295,15 +305,31 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
           </tr>
         </thead>
         <tbody>
-          {filteredStudents.length === 0 ? (
-            <tr><td colSpan={headers.length} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>No students match the filter.</td></tr>
-          ) : (
-            filteredStudents.map((st, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                {rowRender(st)}
-              </tr>
-            ))
-          )}
+          {(() => {
+             const phaseMatch = activeSubTab.match(/internal_[123]/);
+             const phaseKey = phaseMatch ? phaseMatch[0] : null;
+             if (phaseKey && testStates[phaseKey] === 'canceled') {
+                 const setting = testSettings?.find(s => s.testType === (phaseKey === 'internal_1' ? 'Int-1' : phaseKey === 'internal_2' ? 'Int-2' : 'Int-3'));
+                 return (
+                     <tr>
+                       <td colSpan={headers.length} style={{ padding: '60px', textAlign: 'center', backgroundColor: '#fef2f2' }}>
+                           <h3 style={{ color: '#dc2626', margin: 0, fontSize: '1.8rem', fontWeight: 'bold' }}>This Phase was Canceled by Admin</h3>
+                           <p style={{ color: '#991b1b', marginTop: '15px', fontSize: '1.2rem' }}><strong>Reason:</strong> {setting?.cancelReason || 'Not specified'}</p>
+                       </td>
+                     </tr>
+                 );
+             }
+             
+             if (filteredStudents.length === 0) {
+                return <tr><td colSpan={headers.length} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>No students match the filter.</td></tr>;
+             }
+             
+             return filteredStudents.map((st, i) => (
+               <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                 {rowRender(st)}
+               </tr>
+             ));
+          })()}
         </tbody>
       </table>
     </div>

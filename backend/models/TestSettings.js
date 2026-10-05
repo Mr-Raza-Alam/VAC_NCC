@@ -9,7 +9,9 @@ const testSettingsSchema = new mongoose.Schema({
   startTime: { type: String }, // e.g. "10:00"
   endTime: { type: String }, // e.g. "11:00"
   isActive: { type: Boolean, default: false },
-  isFinalized: { type: Boolean, default: false }
+  isFinalized: { type: Boolean, default: false },
+  isCanceled: { type: Boolean, default: false },
+  cancelReason: { type: String, default: null }
 }, { timestamps: true });
 
 module.exports = mongoose.model('TestSettings', testSettingsSchema);

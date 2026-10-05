@@ -16,7 +16,15 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
   let statusColor = "#64748b"; // gray
   let actionButton = null;
 
-  if (isFinalized) {
+  if (settings?.isCanceled) {
+    statusText = "CANCELED";
+    statusColor = "#ef4444"; // red
+    actionButton = (
+      <div style={{ marginTop: '10px', color: '#991b1b', fontWeight: 'bold', textAlign: 'center' }}>
+        This phase has been canceled by the Admin.
+      </div>
+    );
+  } else if (isFinalized) {
     statusText = "Finalized - Results Published";
     statusColor = "#10b981"; // green
     actionButton = (
@@ -54,7 +62,8 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
       transition: 'transform 0.2s ease, box-shadow 0.2s ease',
       cursor: 'default',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      opacity: settings?.isCanceled ? 0.6 : 1
     }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', backgroundColor: statusColor }}></div>
       <h3 style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: '800', marginBottom: '16px' }}>{title}</h3>

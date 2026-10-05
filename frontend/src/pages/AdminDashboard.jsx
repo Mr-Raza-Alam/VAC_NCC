@@ -63,7 +63,9 @@ const AdminDashboard = () => {
             if (phase === 'Int-2') phase = 'internal_2';
             if (phase === 'Int-3') phase = 'internal_3';
             
-            if (setting.isFinalized) {
+            if (setting.isCanceled) {
+              updated[phase] = 'canceled';
+            } else if (setting.isFinalized) {
               updated[phase] = 'done';
             } else if (setting.isActive) {
               updated[phase] = 'active';
@@ -138,7 +140,20 @@ const AdminDashboard = () => {
     setIsMobileMenuOpen(false); // Close mobile menu on navigate
   };
 
-  const handleTestStateChange = async (phase, newState) => {
+  const handleTestStateChange = async (phase, newState, additionalData = null) => {
+    if (newState === 'canceled') {
+       setConfirmDialog({
+           isOpen: true,
+           type: 'cancel',
+           phase,
+           newState,
+           reason: additionalData,
+           title: 'Cancel Test Phase',
+           message: `Are you sure you want to completely cancel the ${phase.replace('_', ' ').toUpperCase()} test?`
+       });
+       return;
+    }
+
     if (newState === 'active') {
       // Validate attendance is marked for all students before starting test
       const isAnyAttendanceEmpty = students.some(st => {
@@ -239,6 +254,28 @@ const AdminDashboard = () => {
       } finally {
         hideLoader();
       }
+    } else if (type === 'cancel') {
+      showLoader();
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/cancel-phase`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ testType: phase, reason: confirmDialog.reason })
+        });
+        
+        if (response.ok) {
+           setTestStates(prev => ({ ...prev, [phase]: 'canceled' }));
+           await fetchSettings();
+           showFlash(`${phase.replace('_', ' ').toUpperCase()} Canceled Successfully.`, "success");
+        } else {
+           const result = await response.json();
+           showFlash(result.message || "Failed to cancel test on backend.", "error");
+        }
+      } catch (error) {
+        showFlash("Server error during cancellation.", "error");
+      } finally {
+        hideLoader();
+      }
     }
   };
 
@@ -289,6 +326,7 @@ const AdminDashboard = () => {
                 handleTestStateChange={handleTestStateChange}
                 tableData={tableData}
                 handleTableDataChange={handleTableDataChange}
+                testSettings={testSettings}
               />;
     }
     
@@ -317,9 +355,9 @@ const AdminDashboard = () => {
               </button>
               <button 
                 onClick={executeConfirmDialog}
-                style={{ padding: '10px 16px', backgroundColor: confirmDialog.type === 'finalize' ? '#dc2626' : '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                style={{ padding: '10px 16px', backgroundColor: confirmDialog.type === 'finalize' || confirmDialog.type === 'cancel' ? '#dc2626' : '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
               >
-                {confirmDialog.type === 'finalize' ? 'Yes, Finalize' : 'Yes, Activate'}
+                {confirmDialog.type === 'finalize' ? 'Yes, Finalize' : (confirmDialog.type === 'cancel' ? 'Yes, Cancel Test' : 'Yes, Activate')}
               </button>
             </div>
           </div>

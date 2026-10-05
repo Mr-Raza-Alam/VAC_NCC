@@ -151,6 +151,34 @@ exports.verifyAndFinalizePhase = async (req, res) => {
     }
 };
 
+exports.cancelPhase = async (req, res) => {
+    try {
+        const { testType, reason } = req.body;
+        if (!testType) return res.status(400).json({ message: "testType is required" });
+
+        const testMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
+        const dbTestType = testMap[testType] || testType;
+
+        let settings = await TestSettings.findOne({ testType: dbTestType });
+        if (settings) {
+            settings.isCanceled = true;
+            settings.cancelReason = reason || 'Canceled by Admin';
+            settings.isActive = false;
+            await settings.save();
+        } else {
+            settings = await TestSettings.create({ 
+                testType: dbTestType, 
+                isCanceled: true, 
+                cancelReason: reason || 'Canceled by Admin',
+                isActive: false 
+            });
+        }
+        res.status(200).json({ message: `${dbTestType} canceled successfully!`, settings });
+    } catch (err) {
+        res.status(500).json({ message: "Server error during cancellation", error: err.message });
+    }
+};
+
 exports.getMasterResults = async (req, res) => {
     try {
         const students = await VacStudent.find({}, '-password').lean();
