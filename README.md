@@ -25,6 +25,7 @@ This portal is strictly segregated into two core experiences: The Admin Interfac
 * **Secure Live Test Engine:** When a test is active, students enter a secure Live Test mode featuring a sticky countdown timer. The backend strips correct answers from the network requests to prevent cheating, and auto-submits exactly when the timer hits zero.
 * **Utility Profile Menu:** Students can pull up their digital **VAC Identity Card**, view the entire **Syllabus**, download study material from a **5-Unit Notes Modal**, and contact the lead developer via a **Technical Support Modal**.
 * **Profile Onboarding:** First-time logins require the student to complete a mandatory, clean onboarding flow (demographics, contact info, etc.) before gaining dashboard access.
+* **Self-Service Password Reset (Zero-Cost):** Students can securely reset forgotten passwords using their pre-onboarded Category and Date of Birth as internal security questions, bypassing the need for expensive third-party Email/SMS OTP services.
 
 ---
 
