@@ -118,12 +118,14 @@ exports.submitTest = async (req, res) => {
 
         let score = 0;
         const savedAnswers = {};
+        const marksPerQuestion = Number(settings.marksPerQuestion) || 1;
+        
         for (const ans of answers) {
             savedAnswers[ans.questionId] = ans.selectedOption;
             const question = await Question.findById(ans.questionId);
             // Support both correctAnswer and correctOption based on schema evolution
             if (question && (question.correctAnswer === ans.selectedOption || question.correctOption === ans.selectedOption)) {
-                score += 1;
+                score += marksPerQuestion;
             }
         }
 

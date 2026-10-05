@@ -10,12 +10,13 @@ const csv = require('csv-parser');
 // Save or Update Settings
 exports.saveSettings = async (req, res) => {
     try {
-        const { testType, duration, resultsVisibility, testDate, startTime, endTime, isActive, isFinalized } = req.body;
+        const { testType, duration, marksPerQuestion, resultsVisibility, testDate, startTime, endTime, isActive, isFinalized } = req.body;
         if (!testType) return res.status(400).json({ message: "testType is required" });
 
         let settings = await TestSettings.findOne({ testType });
         if (settings) {
             if (duration !== undefined) settings.duration = duration;
+            if (marksPerQuestion !== undefined) settings.marksPerQuestion = marksPerQuestion;
             if (resultsVisibility !== undefined) settings.resultsVisibility = resultsVisibility;
             if (testDate !== undefined) settings.testDate = testDate;
             if (startTime !== undefined) settings.startTime = startTime;

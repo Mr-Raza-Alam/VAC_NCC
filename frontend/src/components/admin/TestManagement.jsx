@@ -4,6 +4,7 @@ import { useUI } from '../../context/UIContext';
 const TestManagement = () => {
   const [testType, setTestType] = useState('Int-1');
   const [duration, setDuration] = useState(30);
+  const [marksPerQuestion, setMarksPerQuestion] = useState(1);
   const [resultsVisibility, setResultsVisibility] = useState('OFF');
   const [testDate, setTestDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -28,6 +29,7 @@ const TestManagement = () => {
       if (response.ok) {
         const data = await response.json();
         setDuration(data.duration || 30);
+        setMarksPerQuestion(data.marksPerQuestion || 1);
         setResultsVisibility(data.resultsVisibility || 'OFF');
         
         setTestDate(data.testDate || '');
@@ -50,6 +52,7 @@ const TestManagement = () => {
         body: JSON.stringify({
           testType,
           duration,
+          marksPerQuestion,
           resultsVisibility,
           testDate: testDate || null,
           startTime: startTime || null,
@@ -168,6 +171,18 @@ const TestManagement = () => {
               type="number" 
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
+            />
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '0.9rem', color: '#475569', marginBottom: '6px' }}>Marks per Question</label>
+            <input 
+              type="number" 
+              step="0.1"
+              min="0.1"
+              value={marksPerQuestion}
+              onChange={(e) => setMarksPerQuestion(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
             />
           </div>
