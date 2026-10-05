@@ -239,15 +239,7 @@ const TestManagement = () => {
               </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px', gap: '8px' }}>
-            <input 
-              type="checkbox" 
-              id="announce" 
-              checked={isFinalized}
-              onChange={(e) => setIsFinalized(e.target.checked)}
-            />
-            <label htmlFor="announce" style={{ fontSize: '0.85rem', color: '#1e293b', fontWeight: 'bold' }}>Finalize & Announce Exact Time to Candidates</label>
-          </div>
+
 
           <div style={{ display: 'flex', gap: '12px' }}>
             <button onClick={handleSaveSettings} style={{ backgroundColor: '#0f172a', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
