@@ -144,3 +144,62 @@ exports.studentLogin = async (req, res) => {
         res.status(500).json({ message: "Server error during login: " + error.message });
     }
 };
+
+exports.verifyForgotPassword = async (req, res) => {
+    try {
+        const { vac_rollNo, category, dob } = req.body;
+        if (!vac_rollNo || !category || !dob) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
+        if (!student) {
+            return res.status(404).json({ message: "Student record not found" });
+        }
+
+        if (!student.isOnboarded) {
+            return res.status(400).json({ message: "Student has not completed onboarding. Cannot verify." });
+        }
+
+        if (student.category !== category) {
+            return res.status(401).json({ message: "Verification failed. Details do not match." });
+        }
+
+        // Compare dates (ignoring time)
+        const studentDob = new Date(student.dob).toISOString().split('T')[0];
+        const inputDob = new Date(dob).toISOString().split('T')[0];
+
+        if (studentDob !== inputDob) {
+            return res.status(401).json({ message: "Verification failed. Details do not match." });
+        }
+
+        // Verification successful
+        res.status(200).json({ message: "Verification successful" });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { vac_rollNo, newPassword } = req.body;
+        if (!vac_rollNo || !newPassword) {
+            return res.status(400).json({ message: "Roll number and new password are required" });
+        }
+
+        const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
+        if (!student) {
+            return res.status(404).json({ message: "Student record not found" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        student.password = hashedPassword;
+        await student.save();
+
+        res.status(200).json({ message: "Password reset successful. Please login with your new password." });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};

@@ -8,5 +8,7 @@ router.put('/admins/:id/permissions', authController.updatePermissions);
 
 router.post('/student/register', authController.studentRegister);
 router.post('/student/login', authController.studentLogin);
+router.post('/student/verify-forgot-password', authController.verifyForgotPassword);
+router.post('/student/reset-password', authController.resetPassword);
 
 module.exports = router;
