@@ -15,6 +15,7 @@ This portal is strictly segregated into two core experiences: The Admin Interfac
 * **Automated Master Records (Best of 2):** The system automatically compiles all records and dynamically calculates final grades. It specifically calculates the Internal Score (Int-Score) by automatically picking the "Best 2 out of 3" internal tests.
 * **Finalize & Publish:** A dedicated Finalize button locks the test phase, prevents further submissions, and instantly publishes the results (or generic "Results Published" status depending on settings) to the students.
 * **Bulk Data Upload (CSV):** Automatically process and store thousands of student records and test question banks via simple, error-handled CSV uploads.
+* **Hybrid Question Bank Manager (CRUD + Bulk):** A 3-pillar management system that empowers admins to fully control the question database. It includes a real-time table UI for surgical inline edits/deletions, a powerful "Append" bulk-upload mode, and a one-click "Replace All" nuclear option for uploading fresh semester data via CSV.
 * **Global Settings & Broadcasts:** Admins can pin live broadcast messages across the student portal in real time.
 * **Immutable Audit Logs & Database Reset:** The Lead Admin has access to highly secure, password-protected database reset tools (Nuclear Reset) to clear data for new batches, backed by an immutable Audit Log.
 
