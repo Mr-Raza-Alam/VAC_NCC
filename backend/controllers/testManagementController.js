@@ -258,6 +258,8 @@ exports.getMasterResults = async (req, res) => {
 exports.uploadQuestions = async (req, res) => {
     try {
         const testType = req.body.testType;
+        const isReplace = req.body.isReplace === 'true'; // string from formData
+
         if (!testType) return res.status(400).json({ message: "testType is required" });
         if (!req.file) return res.status(400).json({ message: "CSV file is required" });
 
@@ -286,12 +288,56 @@ exports.uploadQuestions = async (req, res) => {
                 if (parseError) return res.status(400).json({ message: parseError });
                 if (results.length === 0) return res.status(400).json({ message: "CSV is empty" });
 
-                // Append new questions (DO NOT delete existing ones per user request)
+                if (isReplace) {
+                    await Question.deleteMany({ testType });
+                }
+                
                 await Question.insertMany(results);
 
-                res.status(200).json({ message: `Successfully appended ${results.length} questions to ${testType} bank.` });
+                const actionMsg = isReplace ? 'replaced existing bank with' : 'appended';
+                res.status(200).json({ message: `Successfully ${actionMsg} ${results.length} questions for ${testType}.` });
             });
 
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.getQuestions = async (req, res) => {
+    try {
+        const { testType } = req.params;
+        const questions = await Question.find({ testType }).lean();
+        res.status(200).json(questions);
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.updateQuestion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { questionText, options, correctAnswer } = req.body;
+        
+        if (!questionText || !options || options.length !== 4 || !correctAnswer) {
+            return res.status(400).json({ message: "Invalid question format." });
+        }
+
+        const updated = await Question.findByIdAndUpdate(id, { questionText, options, correctAnswer }, { new: true });
+        if (!updated) return res.status(404).json({ message: "Question not found." });
+
+        res.status(200).json({ message: "Question updated successfully.", question: updated });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
+exports.deleteQuestion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await Question.findByIdAndDelete(id);
+        if (!deleted) return res.status(404).json({ message: "Question not found." });
+
+        res.status(200).json({ message: "Question deleted successfully." });
     } catch (err) {
         res.status(500).json({ message: "Server error", error: err.message });
     }

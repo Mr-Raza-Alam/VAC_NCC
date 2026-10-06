@@ -12,6 +12,11 @@ const TestManagement = () => {
   const [isFinalized, setIsFinalized] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
   
+  // Question Management States
+  const [questions, setQuestions] = useState([]);
+  const [isViewQuestions, setIsViewQuestions] = useState(false);
+  const [editQuestionData, setEditQuestionData] = useState(null);
+  
   // Document Upload States
   const [docFile, setDocFile] = useState(null);
   const [docType, setDocType] = useState('syllabus');
@@ -21,6 +26,9 @@ const TestManagement = () => {
   // Fetch settings whenever the testType changes
   useEffect(() => {
     fetchSettings();
+    if (isViewQuestions) {
+      fetchQuestions();
+    }
   }, [testType]);
 
   const fetchSettings = async () => {
@@ -41,6 +49,30 @@ const TestManagement = () => {
     } catch (error) {
       console.error("Failed to fetch settings", error);
     }
+  };
+
+  const fetchQuestions = async () => {
+    showLoader();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/questions/${testType}`);
+      if (response.ok) {
+        const data = await response.json();
+        setQuestions(data);
+      } else {
+        showFlash("Failed to fetch questions", "error");
+      }
+    } catch (error) {
+      showFlash("Server error fetching questions", "error");
+    } finally {
+      hideLoader();
+    }
+  };
+
+  const toggleViewQuestions = () => {
+    if (!isViewQuestions) {
+      fetchQuestions();
+    }
+    setIsViewQuestions(!isViewQuestions);
   };
 
   const handleSaveSettings = async () => {
@@ -95,12 +127,13 @@ const TestManagement = () => {
     }
   };
 
-  const handleUploadCSV = async () => {
+  const handleUploadCSV = async (isReplace) => {
     if (!csvFile) return showFlash("Please select a CSV file first!", "error");
     
     const formData = new FormData();
     formData.append('testType', testType);
     formData.append('csvFile', csvFile);
+    formData.append('isReplace', isReplace);
 
     showLoader();
     try {
@@ -109,10 +142,59 @@ const TestManagement = () => {
         body: formData // No Content-Type header, fetch sets it automatically with boundary for FormData
       });
       const data = await response.json();
-      if (response.ok) showFlash(data.message, "success");
+      if (response.ok) {
+        showFlash(data.message, "success");
+        if (isViewQuestions) fetchQuestions();
+        setCsvFile(null); // clear file input
+        document.getElementById('csv-upload-input').value = ""; 
+      }
       else showFlash("Error: " + data.message, "error");
     } catch (error) {
       showFlash("Server error during upload", "error");
+    } finally {
+      hideLoader();
+    }
+  };
+
+  const handleDeleteQuestion = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this question?")) return;
+    
+    showLoader();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/questions/${id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        showFlash("Question deleted successfully", "success");
+        fetchQuestions();
+      } else {
+        showFlash("Failed to delete question", "error");
+      }
+    } catch (error) {
+      showFlash("Server error deleting question", "error");
+    } finally {
+      hideLoader();
+    }
+  };
+
+  const handleUpdateQuestion = async (e) => {
+    e.preventDefault();
+    showLoader();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/test-management/questions/${editQuestionData._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editQuestionData)
+      });
+      if (response.ok) {
+        showFlash("Question updated successfully", "success");
+        setEditQuestionData(null);
+        fetchQuestions();
+      } else {
+        showFlash("Failed to update question", "error");
+      }
+    } catch (error) {
+      showFlash("Server error updating question", "error");
     } finally {
       hideLoader();
     }
@@ -264,8 +346,6 @@ const TestManagement = () => {
               </div>
           </div>
 
-
-
           <div style={{ display: 'flex', gap: '12px' }}>
             <button onClick={handleSaveSettings} style={{ backgroundColor: '#0f172a', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
               SAVE WINDOW
@@ -283,13 +363,57 @@ const TestManagement = () => {
 
       {/* Question Bank Management Card */}
       <div style={{ backgroundColor: '#f8fafc', padding: '24px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-        <h3 style={{ fontSize: '1.2rem', color: '#1e293b', marginBottom: '12px', fontWeight: '600' }}>Question Bank Management ({testType})</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '1.2rem', color: '#1e293b', margin: 0, fontWeight: '600' }}>Question Bank Management ({testType})</h3>
+          <button onClick={toggleViewQuestions} style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '8px 16px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+            {isViewQuestions ? 'HIDE QUESTIONS' : 'VIEW QUESTIONS'}
+          </button>
+        </div>
+
+        {isViewQuestions && (
+          <div style={{ marginBottom: '24px', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#f1f5f9', padding: '12px 16px', borderBottom: '1px solid #cbd5e1', fontWeight: 'bold', color: '#334155' }}>
+              Total Questions: {questions.length}
+            </div>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {questions.length === 0 ? (
+                <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>No questions found.</div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #cbd5e1', textAlign: 'left' }}>
+                      <th style={{ padding: '12px', fontSize: '0.9rem', color: '#475569' }}>Q#</th>
+                      <th style={{ padding: '12px', fontSize: '0.9rem', color: '#475569', width: '50%' }}>Question</th>
+                      <th style={{ padding: '12px', fontSize: '0.9rem', color: '#475569' }}>Correct Answer</th>
+                      <th style={{ padding: '12px', fontSize: '0.9rem', color: '#475569' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {questions.map((q, idx) => (
+                      <tr key={q._id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '12px', fontSize: '0.9rem' }}>{idx + 1}</td>
+                        <td style={{ padding: '12px', fontSize: '0.9rem' }}>{q.questionText}</td>
+                        <td style={{ padding: '12px', fontSize: '0.9rem', color: '#16a34a', fontWeight: '500' }}>{q.correctAnswer}</td>
+                        <td style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+                          <button onClick={() => setEditQuestionData(q)} style={{ padding: '4px 8px', backgroundColor: '#eef2ff', color: '#4f46e5', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>Edit</button>
+                          <button onClick={() => handleDeleteQuestion(q._id)} style={{ padding: '4px 8px', backgroundColor: '#fef2f2', color: '#dc2626', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}>Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
+
         <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '24px' }}>
-          Upload a CSV file to seamlessly <strong>append</strong> new questions to the current question bank for {testType}. The CSV must have specific columns.
+          Upload a CSV file to seamlessly add questions to the current question bank for {testType}. 
         </p>
 
         <div style={{ marginBottom: '16px' }}>
           <input 
+            id="csv-upload-input"
             type="file" 
             accept=".csv"
             onChange={(e) => setCsvFile(e.target.files[0])}
@@ -297,15 +421,76 @@ const TestManagement = () => {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <button onClick={generateTemplate} style={{ backgroundColor: 'transparent', color: '#334155', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
             DOWNLOAD CSV TEMPLATE
           </button>
-          <button onClick={handleUploadCSV} style={{ backgroundColor: '#0f172a', color: 'white', padding: '10px 24px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
-            UPLOAD QUESTIONS (CSV)
+          
+          <button onClick={() => handleUploadCSV(false)} style={{ backgroundColor: '#2563eb', color: 'white', padding: '10px 24px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+            ADD QUESTIONS (APPEND)
+          </button>
+          
+          <button onClick={() => handleUploadCSV(true)} style={{ backgroundColor: '#dc2626', color: 'white', padding: '10px 24px', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+            UPDATE SET (REPLACE ALL)
           </button>
         </div>
       </div>
+
+      {/* Edit Question Modal */}
+      {editQuestionData && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '20px', color: '#1e293b' }}>Edit Question</h3>
+            <form onSubmit={handleUpdateQuestion}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>Question Text</label>
+                <textarea 
+                  required
+                  value={editQuestionData.questionText}
+                  onChange={(e) => setEditQuestionData({...editQuestionData, questionText: e.target.value})}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '4px', minHeight: '80px' }}
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                {[0, 1, 2, 3].map((index) => (
+                  <div key={index}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>Option {index + 1}</label>
+                    <input 
+                      type="text"
+                      required
+                      value={editQuestionData.options[index] || ''}
+                      onChange={(e) => {
+                        const newOptions = [...editQuestionData.options];
+                        newOptions[index] = e.target.value;
+                        setEditQuestionData({...editQuestionData, options: newOptions});
+                      }}
+                      style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>Correct Answer</label>
+                <input 
+                  type="text"
+                  required
+                  value={editQuestionData.correctAnswer}
+                  onChange={(e) => setEditQuestionData({...editQuestionData, correctAnswer: e.target.value})}
+                  style={{ width: '100%', padding: '8px', border: '2px solid #22c55e', borderRadius: '4px' }}
+                />
+                <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>Note: Must exactly match one of the options.</p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setEditQuestionData(null)} style={{ padding: '10px 20px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
+                <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Document (Syllabus/Notes) Management Card */}
       <div style={{ backgroundColor: '#f8fafc', padding: '24px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '24px' }}>
