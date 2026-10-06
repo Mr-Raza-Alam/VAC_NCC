@@ -71,7 +71,8 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     e.preventDefault();
     showLoader();
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/${editingStudent.vac_rollNo}`, {
+      const encodedRoll = encodeURIComponent(editingStudent.vac_rollNo);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/${encodedRoll}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingStudent)
@@ -94,7 +95,8 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
   const handleDelete = async (rollNo) => {
     showLoader();
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/${rollNo}`, {
+      const encodedRoll = encodeURIComponent(rollNo);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/${encodedRoll}`, {
         method: 'DELETE'
       });
       const data = await response.json();
