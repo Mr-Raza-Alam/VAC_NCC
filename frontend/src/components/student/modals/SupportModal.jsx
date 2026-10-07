@@ -25,11 +25,19 @@ const SupportModal = ({ onClose }) => {
           If you are facing any technical glitches, login issues, or problems during a live test, please reach out to the lead developer immediately.
         </p>
 
-        <div style={{ backgroundColor: '#eff6ff', padding: '20px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
-          <p style={{ margin: '0 0 8px 0', color: '#1e40af', fontWeight: '600' }}>Contact Email:</p>
-          <a href="mailto:raza.alam@aus.ac.in" style={{ fontSize: '1.2rem', color: '#2563eb', fontWeight: '800', textDecoration: 'none', wordBreak: 'break-all' }}>
-            raza.alam@aus.ac.in
-          </a>
+        <div style={{ backgroundColor: '#eff6ff', padding: '20px', borderRadius: '12px', border: '1px solid #bfdbfe', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div>
+            <p style={{ margin: '0 0 4px 0', color: '#1e40af', fontWeight: '600' }}>Contact Email:</p>
+            <a href="mailto:raza.alam@aus.ac.in" style={{ fontSize: '1.1rem', color: '#2563eb', fontWeight: '800', textDecoration: 'none', wordBreak: 'break-all' }}>
+              raza.alam@aus.ac.in
+            </a>
+          </div>
+          <div>
+            <p style={{ margin: '0 0 4px 0', color: '#1e40af', fontWeight: '600' }}>Contact Phone:</p>
+            <a href="tel:+917004891854" style={{ fontSize: '1.1rem', color: '#2563eb', fontWeight: '800', textDecoration: 'none' }}>
+              +91 7004891854
+            </a>
+          </div>
         </div>
 
         <button 
