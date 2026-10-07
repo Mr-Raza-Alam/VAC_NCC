@@ -162,8 +162,9 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
       let rows = [];
 
       if (filename.includes("Master_Table")) {
-          headers = ['Name', 'Roll No.', 'Dept.', 'Int-1', 'Int-2', 'Int-3', 'Int-Score', 'CA', 'Pract.', 'Total'];
-          rows = dataToExport.map(st => [
+          headers = ['S.No.', 'Name', 'Roll No.', 'Dept.', 'Int-1', 'Int-2', 'Int-3', 'Int-Score', 'CA', 'Pract.', 'Total'];
+          rows = dataToExport.map((st, idx) => [
+              idx + 1,
               st.name || '-',
               st.vac_rollNo || '-',
               st.department || '-',
@@ -176,8 +177,9 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
               st.total ?? '-'
           ]);
       } else {
-          headers = ['Name', 'Roll No.', 'Department', 'Semester', 'Email', 'Mobile', 'Gender', 'Category', 'State', 'Guardian Contact', 'DOB'];
-          rows = dataToExport.map(st => [
+          headers = ['S.No.', 'Name', 'Roll No.', 'Department', 'Semester', 'Email', 'Mobile', 'Gender', 'Category', 'State', 'Guardian Contact', 'DOB'];
+          rows = dataToExport.map((st, idx) => [
+              idx + 1,
               st.name || '-',
               st.vac_rollNo || '-',
               st.department || '-',

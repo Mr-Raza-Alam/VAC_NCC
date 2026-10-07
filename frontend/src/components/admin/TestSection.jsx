@@ -21,17 +21,18 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
       if (!response.ok) throw new Error(data.message || 'Failed to fetch report');
       if (data.length === 0) return showFlash("No records found for this test.", "error");
 
-      const headers = Array.from(new Set(data.flatMap(Object.keys)));
+      const originalHeaders = Array.from(new Set(data.flatMap(Object.keys)));
+      const headers = ['S.No.', ...originalHeaders];
 
       if (format === 'csv') {
           const csvRows = [headers.join(',')];
-          for (const row of data) {
-              const values = headers.map(header => {
+          data.forEach((row, idx) => {
+              const values = originalHeaders.map(header => {
                   const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
                   return `"${String(val).replace(/"/g, '""')}"`;
               });
-              csvRows.push(values.join(','));
-          }
+              csvRows.push(`${idx + 1},${values.join(',')}`);
+          });
           const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -46,7 +47,10 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
           const doc = new jsPDF();
           doc.text(`Transparency Report - ${tType}`, 14, 15);
           
-          const rows = data.map(row => headers.map(h => row[h] !== undefined && row[h] !== null ? String(row[h]) : ''));
+          const rows = data.map((row, idx) => {
+              const mappedRow = originalHeaders.map(h => row[h] !== undefined && row[h] !== null ? String(row[h]) : '');
+              return [String(idx + 1), ...mappedRow];
+          });
           
           autoTable(doc, {
               head: [headers],
