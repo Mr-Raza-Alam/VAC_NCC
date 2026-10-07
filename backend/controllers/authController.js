@@ -54,9 +54,11 @@ exports.updatePermissions = async (req, res) => {
 
 exports.studentRegister = async (req, res) => {
     try {
-        const { vac_rollNo, email, password } = req.body;
+        let { vac_rollNo, email, password } = req.body;
         
         if (!vac_rollNo || !password) return res.status(400).json({ message: "Roll Number and password are required" });
+
+        vac_rollNo = vac_rollNo.trim();
 
         // Check if student exists (uploaded by admin via CSV)
         const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
@@ -107,11 +109,13 @@ exports.studentRegister = async (req, res) => {
 
 exports.studentLogin = async (req, res) => {
     try {
-        const { vac_rollNo, password } = req.body;
+        let { vac_rollNo, password } = req.body;
         
         if (!vac_rollNo || !password) {
             return res.status(400).json({ message: "Roll Number and password are required." });
         }
+        
+        vac_rollNo = vac_rollNo.trim();
         
         const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
         if (!student || !student.password) {
@@ -147,10 +151,12 @@ exports.studentLogin = async (req, res) => {
 
 exports.verifyForgotPassword = async (req, res) => {
     try {
-        const { vac_rollNo, category, dob } = req.body;
+        let { vac_rollNo, category, dob } = req.body;
         if (!vac_rollNo || !category || !dob) {
             return res.status(400).json({ message: "All fields are required" });
         }
+        
+        vac_rollNo = vac_rollNo.trim();
 
         const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
         if (!student) {
@@ -182,10 +188,12 @@ exports.verifyForgotPassword = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     try {
-        const { vac_rollNo, newPassword } = req.body;
+        let { vac_rollNo, newPassword } = req.body;
         if (!vac_rollNo || !newPassword) {
             return res.status(400).json({ message: "Roll number and new password are required" });
         }
+        
+        vac_rollNo = vac_rollNo.trim();
 
         const student = await VacStudent.findOne({ vac_rollNo: vac_rollNo.toUpperCase() });
         if (!student) {

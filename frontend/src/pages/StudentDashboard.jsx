@@ -15,7 +15,10 @@ const StudentDashboard = () => {
   const { showFlash } = useUI();
   
   const [studentName, setStudentName] = useState("");
-  const [isOnboarded, setIsOnboarded] = useState(true);
+  const [isOnboarded, setIsOnboarded] = useState(() => {
+    const data = localStorage.getItem('studentData');
+    return data ? JSON.parse(data).isOnboarded : false;
+  });
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [activeTab, setActiveTab] = useState('online_test'); // online_test, practical_test, continuous_assessment
   
@@ -132,6 +135,13 @@ const StudentDashboard = () => {
       
       if (response.ok) {
         setIsOnboarded(true);
+        // Update local storage so refresh doesn't cause a flash
+        const existingData = localStorage.getItem('studentData');
+        if (existingData) {
+          const parsed = JSON.parse(existingData);
+          parsed.isOnboarded = true;
+          localStorage.setItem('studentData', JSON.stringify(parsed));
+        }
         showFlash("Profile completed successfully!", "success");
         fetchStudentData(); // Refresh data
       } else {
