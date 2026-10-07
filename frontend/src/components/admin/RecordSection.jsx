@@ -10,6 +10,7 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cutoffScore, setCutoffScore] = useState('');
   const [appliedCutoff, setAppliedCutoff] = useState(null);
+  const [sortOrder, setSortOrder] = useState(null);
 
   // Edit/Delete Modal States
   const [editingStudent, setEditingStudent] = useState(null);
@@ -212,7 +213,7 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     doc.save(`${filename}.pdf`);
   };
 
-  const filteredStudents = (activeSubTab === 'master_table' ? masterData : students).filter(st => {
+  let filteredStudents = (activeSubTab === 'master_table' ? masterData : students).filter(st => {
     let match = true;
     if (filterLetter) {
         match = st.name.toLowerCase().startsWith(filterLetter.toLowerCase());
@@ -223,6 +224,16 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     }
     return match;
   });
+
+  if (activeSubTab === 'master_table' && sortOrder) {
+      filteredStudents.sort((a, b) => {
+          const scoreA = Number(a.total) || 0;
+          const scoreB = Number(b.total) || 0;
+          if (scoreA < scoreB) return sortOrder === 'asc' ? -1 : 1;
+          if (scoreA > scoreB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+      });
+  }
 
   const renderFilterAndSearch = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -462,7 +473,13 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
               <th style={{ padding: '12px 16px', textAlign: 'center', color: '#475569', fontSize: '0.9rem' }}>Int-Score</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', color: '#475569', fontSize: '0.9rem' }}>CA</th>
               <th style={{ padding: '12px 16px', textAlign: 'center', color: '#475569', fontSize: '0.9rem' }}>Pract.</th>
-              <th style={{ padding: '12px 16px', textAlign: 'center', color: '#1e3a8a', fontSize: '0.9rem', fontWeight: 'bold' }}>Total</th>
+              <th 
+                  onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')} 
+                  style={{ padding: '12px 16px', textAlign: 'center', color: '#1e3a8a', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer' }}
+                  title="Click to sort by Total Score"
+              >
+                  Total {sortOrder === 'asc' ? '⬆️' : sortOrder === 'desc' ? '⬇️' : '↕️'}
+              </th>
               <th style={{ padding: '12px 16px', textAlign: 'center', color: '#475569', fontSize: '0.9rem' }}>Status</th>
             </tr>
           </thead>

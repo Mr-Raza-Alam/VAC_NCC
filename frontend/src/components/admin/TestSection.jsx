@@ -7,6 +7,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
   const { showFlash, showLoader, hideLoader } = useUI();
   const [filterLetter, setFilterLetter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState(null);
 
   const downloadTransparencyReport = async (phaseKey, format = 'csv') => {
     showLoader();
@@ -65,7 +66,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
     }
   };
 
-  const filteredStudents = students.filter(st => {
+  let filteredStudents = students.filter(st => {
     let match = true;
     if (filterLetter) {
         match = st.name.toLowerCase().startsWith(filterLetter.toLowerCase());
@@ -76,6 +77,32 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
     }
     return match;
   });
+
+  if (sortOrder) {
+      filteredStudents.sort((a, b) => {
+          let scoreA = 0;
+          let scoreB = 0;
+
+          if (activeSubTab.startsWith('internal_')) {
+              const phaseMatch = activeSubTab.match(/internal_[123]/);
+              const phaseKey = phaseMatch ? phaseMatch[0] : 'internal_1';
+              scoreA = Number(tableData[a.vac_rollNo]?.[phaseKey]?.score) || 0;
+              scoreB = Number(tableData[b.vac_rollNo]?.[phaseKey]?.score) || 0;
+          } else if (activeSubTab.startsWith('practical_')) {
+              scoreA = Number(tableData[a.vac_rollNo]?.practical?.score) || 0;
+              scoreB = Number(tableData[b.vac_rollNo]?.practical?.score) || 0;
+          } else if (activeSubTab.startsWith('ca_')) {
+              const caA = tableData[a.vac_rollNo]?.ca;
+              const caB = tableData[b.vac_rollNo]?.ca;
+              scoreA = (caA?.ass && caA?.present) ? Number(caA.ass) + Number(caA.present) : 0;
+              scoreB = (caB?.ass && caB?.present) ? Number(caB.ass) + Number(caB.present) : 0;
+          }
+
+          if (scoreA < scoreB) return sortOrder === 'asc' ? -1 : 1;
+          if (scoreA > scoreB) return sortOrder === 'asc' ? 1 : -1;
+          return 0;
+      });
+  }
 
   const renderFilterDropdown = () => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -319,9 +346,26 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-            {headers.map((h, idx) => (
-              <th key={idx} style={{ padding: '12px 16px', textAlign: 'left', color: '#475569', fontSize: '0.9rem' }}>{h}</th>
-            ))}
+            {headers.map((h, idx) => {
+              const isScoreCol = h === 'Int-1' || h === 'Int-2' || h === 'Int-3' || h === 'Pract.' || h === 'CA';
+              return (
+                <th 
+                  key={idx} 
+                  onClick={isScoreCol ? () => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc') : undefined}
+                  style={{ 
+                    padding: '12px 16px', 
+                    textAlign: isScoreCol ? 'center' : 'left', 
+                    color: isScoreCol ? '#1e3a8a' : '#475569', 
+                    fontSize: '0.9rem',
+                    cursor: isScoreCol ? 'pointer' : 'default',
+                    fontWeight: isScoreCol ? 'bold' : 'normal'
+                  }}
+                  title={isScoreCol ? "Click to sort by Score" : ""}
+                >
+                  {h} {isScoreCol && (sortOrder === 'asc' ? '⬆️' : sortOrder === 'desc' ? '⬇️' : '↕️')}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
