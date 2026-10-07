@@ -7,6 +7,7 @@ import StudentLogin from './pages/StudentLogin';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
+import BroadcastBanner from './components/BroadcastBanner';
 
 import { UIProvider } from './context/UIContext';
 
@@ -16,6 +17,7 @@ function App() {
       <Router>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
+          <BroadcastBanner />
           <div style={{ flex: 1 }}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
