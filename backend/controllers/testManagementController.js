@@ -78,9 +78,7 @@ exports.verifyAndFinalizePhase = async (req, res) => {
 
             if (data.att === 'P') {
                 if (testType.startsWith('internal_')) {
-                    if (data.score === undefined || data.score === null || data.score === '') {
-                        return res.status(400).json({ message: `Student ${rollNo} is Present but missing a CBT score. Cannot finalize.` });
-                    }
+                    // System calculates internal CBT scores, so we don't rely on frontend tableData for verification.
                 } else if (testType === 'practical') {
                     if (data.score === undefined || data.score === null || data.score === '') {
                         return res.status(400).json({ message: `Student ${rollNo} is Present but missing a Practical score. Cannot finalize.` });
@@ -110,9 +108,8 @@ exports.verifyAndFinalizePhase = async (req, res) => {
 
             if (testType.startsWith('internal_')) {
                 const updatePayload = { attendance: data.att || '' };
-                if (data.score !== undefined && data.score !== '') {
-                    updatePayload.score = Number(data.score) || 0;
-                }
+                // Removed score overwrite to prevent stale admin dashboard data 
+                // from zeroing out a student's actual CBT test score upon finalization.
                 
                 await InternalTestRecord.findOneAndUpdate(
                     { student: student._id, testType: dbTestType },
@@ -408,7 +405,7 @@ exports.updateLiveTableData = async (req, res) => {
             
             const update = {};
             if (field === 'att') update.attendance = value;
-            if (field === 'score') update.score = Number(value) || 0;
+            // Internal CBT scores are strictly system-calculated
 
             await InternalTestRecord.findOneAndUpdate(
                 { student: student._id, testType: dbTestType },
