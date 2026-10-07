@@ -191,7 +191,7 @@ exports.getTestResultDetails = async (req, res) => {
             testDetails: {
                 testType: mappedType,
                 score: record.score,
-                total: questions.length,
+                total: questions.length * (settings.marksPerQuestion || 1),
                 submittedAt: record.updatedAt
             },
             resultDetails
