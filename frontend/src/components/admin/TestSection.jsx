@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUI } from '../../context/UIContext';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange, tableData, handleTableDataChange, testSettings }) => {
   const { showFlash, showLoader, hideLoader } = useUI();
@@ -48,7 +48,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
           
           const rows = data.map(row => headers.map(h => row[h] !== undefined && row[h] !== null ? String(row[h]) : ''));
           
-          doc.autoTable({
+          autoTable(doc, {
               head: [headers],
               body: rows,
               startY: 20,

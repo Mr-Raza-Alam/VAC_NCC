@@ -157,23 +157,55 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     }
   };
 
+  const getExportData = (dataToExport, filename) => {
+      let headers = [];
+      let rows = [];
+
+      if (filename.includes("Master_Table")) {
+          headers = ['Name', 'Roll No.', 'Dept.', 'Int-1', 'Int-2', 'Int-3', 'Int-Score', 'CA', 'Pract.', 'Total'];
+          rows = dataToExport.map(st => [
+              st.name || '-',
+              st.vac_rollNo || '-',
+              st.department || '-',
+              st.int1 ?? '-',
+              st.int2 ?? '-',
+              st.int3 ?? '-',
+              st.intScore ?? '-',
+              st.ca ?? '-',
+              st.pract ?? '-',
+              st.total ?? '-'
+          ]);
+      } else {
+          headers = ['Name', 'Roll No.', 'Department', 'Semester', 'Email', 'Mobile', 'Gender', 'Category', 'State', 'Guardian Contact', 'DOB'];
+          rows = dataToExport.map(st => [
+              st.name || '-',
+              st.vac_rollNo || '-',
+              st.department || '-',
+              st.semester || '-',
+              st.email || '-',
+              st.mobile || '-',
+              st.gender || '-',
+              st.category || '-',
+              st.state || '-',
+              st.guardianContact || '-',
+              st.dob ? new Date(st.dob).toLocaleDateString() : '-'
+          ]);
+      }
+      return { headers, rows };
+  };
+
   const exportCSV = (dataToExport, filename) => {
     if (!dataToExport || dataToExport.length === 0) {
         return showFlash("No data to export", "error");
     }
     
-    // Get all unique keys from the raw dataset
-    const headers = Array.from(new Set(dataToExport.flatMap(Object.keys)));
+    const { headers, rows } = getExportData(dataToExport, filename);
     
     const csvRows = [];
-    csvRows.push(headers.join(',')); // Add headers
+    csvRows.push(headers.join(','));
 
-    for (const row of dataToExport) {
-        const values = headers.map(header => {
-            const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
-            // Escape quotes and wrap in quotes to handle commas in data
-            return `"${String(val).replace(/"/g, '""')}"`;
-        });
+    for (const row of rows) {
+        const values = row.map(val => `"${String(val).replace(/"/g, '""')}"`);
         csvRows.push(values.join(','));
     }
 
@@ -194,17 +226,11 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
     }
     
     const doc = new jsPDF('landscape');
-    
-    // Exclude 'password' or heavy fields if necessary, but we export full schema per requirements
-    const headers = Array.from(new Set(dataToExport.flatMap(Object.keys))).filter(k => k !== 'password');
-    
-    const body = dataToExport.map(row => {
-        return headers.map(header => row[header] !== undefined && row[header] !== null ? String(row[header]) : '-');
-    });
+    const { headers, rows } = getExportData(dataToExport, filename);
 
     autoTable(doc, {
         head: [headers],
-        body: body,
+        body: rows,
         theme: 'grid',
         styles: { fontSize: 8 },
         headStyles: { fillColor: [30, 58, 138] },
