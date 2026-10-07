@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useUI } from '../../context/UIContext';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange, tableData, handleTableDataChange, testSettings }) => {
   const { showFlash, showLoader, hideLoader } = useUI();
   const [filterLetter, setFilterLetter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const downloadTransparencyReport = async (phaseKey) => {
+  const downloadTransparencyReport = async (phaseKey, format = 'csv') => {
     showLoader();
     try {
       const testTypeMap = { internal_1: 'Int-1', internal_2: 'Int-2', internal_3: 'Int-3' };
@@ -19,26 +21,43 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
       if (data.length === 0) return showFlash("No records found for this test.", "error");
 
       const headers = Array.from(new Set(data.flatMap(Object.keys)));
-      const csvRows = [headers.join(',')];
 
-      for (const row of data) {
-          const values = headers.map(header => {
-              const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
-              return `"${String(val).replace(/"/g, '""')}"`;
+      if (format === 'csv') {
+          const csvRows = [headers.join(',')];
+          for (const row of data) {
+              const values = headers.map(header => {
+                  const val = row[header] !== undefined && row[header] !== null ? row[header] : '';
+                  return `"${String(val).replace(/"/g, '""')}"`;
+              });
+              csvRows.push(values.join(','));
+          }
+          const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('hidden', '');
+          a.setAttribute('href', url);
+          a.setAttribute('download', `Transparency_Report_${tType}.csv`);
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showFlash("Transparency Report downloaded successfully!", "success");
+      } else if (format === 'pdf') {
+          const doc = new jsPDF();
+          doc.text(`Transparency Report - ${tType}`, 14, 15);
+          
+          const rows = data.map(row => headers.map(h => row[h] !== undefined && row[h] !== null ? String(row[h]) : ''));
+          
+          doc.autoTable({
+              head: [headers],
+              body: rows,
+              startY: 20,
+              styles: { fontSize: 8 },
+              headStyles: { fillColor: [15, 23, 42] }
           });
-          csvRows.push(values.join(','));
+          
+          doc.save(`Transparency_Report_${tType}.pdf`);
+          showFlash("Transparency Report PDF downloaded successfully!", "success");
       }
-
-      const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.setAttribute('hidden', '');
-      a.setAttribute('href', url);
-      a.setAttribute('download', `Transparency_Report_${tType}.csv`);
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showFlash("Transparency Report downloaded successfully!", "success");
     } catch (err) {
       showFlash(err.message, "error");
     } finally {
@@ -266,12 +285,18 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
          )}
 
          {activeSubTab.endsWith('_result') && activeSubTab.startsWith('internal_') && (
-           <div style={{ display: 'flex', gap: '10px' }}>
+           <div style={{ display: 'flex', gap: '8px' }}>
              <button 
-               onClick={() => downloadTransparencyReport(activeSubTab.match(/internal_[123]/)[0])} 
-               style={{ backgroundColor: '#4f46e5', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+               onClick={() => downloadTransparencyReport(activeSubTab.match(/internal_[123]/)[0], 'csv')} 
+               style={{ backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
              >
-               📄 Download Transparency Report (CSV)
+               CSV
+             </button>
+             <button 
+               onClick={() => downloadTransparencyReport(activeSubTab.match(/internal_[123]/)[0], 'pdf')} 
+               style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+             >
+               PDF
              </button>
            </div>
          )}

@@ -15,6 +15,8 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
   const [editingStudent, setEditingStudent] = useState(null);
   const [isDeletingRoll, setIsDeletingRoll] = useState(null);
   const [masterData, setMasterData] = useState([]);
+  const [isManualAdding, setIsManualAdding] = useState(false);
+  const [manualStudents, setManualStudents] = useState([{ name: '', rollNo: '', department: '' }]);
   
   const { showFlash, showLoader, hideLoader } = useUI();
 
@@ -65,6 +67,46 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
       setIsUploading(false);
       hideLoader();
     }
+  };
+
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    showLoader();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/record/vac-students/manual-add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ students: manualStudents })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showFlash(data.message, "success");
+        setIsManualAdding(false);
+        setManualStudents([{ name: '', rollNo: '', department: '' }]);
+        fetchStudents();
+      } else {
+        showFlash(data.message, "error");
+      }
+    } catch (error) {
+      showFlash("Server error during manual addition", "error");
+    } finally {
+      hideLoader();
+    }
+  };
+
+  const handleAddRow = () => {
+      setManualStudents([...manualStudents, { name: '', rollNo: '', department: '' }]);
+  };
+
+  const handleRemoveRow = (index) => {
+      const updated = manualStudents.filter((_, i) => i !== index);
+      setManualStudents(updated);
+  };
+
+  const handleManualStudentChange = (index, field, value) => {
+      const updated = [...manualStudents];
+      updated[index][field] = value;
+      setManualStudents(updated);
   };
 
   const handleEditSubmit = async (e) => {
@@ -243,6 +285,12 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.1rem' }}>Raw Student Records ({filteredStudents.length}/{students.length})</h3>
                 {renderFilterAndSearch()}
+                <button 
+                  onClick={() => setIsManualAdding(true)} 
+                  style={{ backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 12px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold' }}
+                >
+                  ➕ Add Student Manually
+                </button>
               </div>
               <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                 {renderExportButtons("VAC_Student_Records_Complete")}
@@ -336,6 +384,49 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
                  </div>
              </div>
          </div>
+        )}
+
+        {/* Manual Add Modal */}
+        {isManualAdding && (
+             <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+                <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', width: '500px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+                    <h3 style={{ marginTop: 0, color: '#1e293b' }}>Add Student Manually</h3>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px' }}>Quickly add a student to the whitelist without uploading a CSV file.</p>
+                    <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '10px' }}>
+                            {manualStudents.map((student, index) => (
+                                <div key={index} style={{ padding: '15px', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '15px', backgroundColor: '#f8fafc', position: 'relative' }}>
+                                    {manualStudents.length > 1 && (
+                                        <button type="button" onClick={() => handleRemoveRow(index)} style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1.2rem' }} title="Remove Row">×</button>
+                                    )}
+                                    <h4 style={{ margin: '0 0 10px 0', color: '#475569', fontSize: '0.9rem' }}>Student {index + 1}</h4>
+                                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', marginBottom: '5px', color: '#475569', fontSize: '0.8rem', fontWeight: 'bold' }}>Name</label>
+                                            <input type="text" value={student.name} onChange={e => handleManualStudentChange(index, 'name', e.target.value)} placeholder="John Doe" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} required />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', marginBottom: '5px', color: '#475569', fontSize: '0.8rem', fontWeight: 'bold' }}>Roll No.</label>
+                                            <input type="text" value={student.rollNo} onChange={e => handleManualStudentChange(index, 'rollNo', e.target.value)} placeholder="VAC2401" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} required />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={{ display: 'block', marginBottom: '5px', color: '#475569', fontSize: '0.8rem', fontWeight: 'bold' }}>Department</label>
+                                            <input type="text" value={student.department} onChange={e => handleManualStudentChange(index, 'department', e.target.value)} placeholder="CSE" style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '4px' }} required />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            <button type="button" onClick={handleAddRow} style={{ width: '100%', padding: '10px', backgroundColor: '#e2e8f0', border: '1px dashed #94a3b8', borderRadius: '4px', cursor: 'pointer', color: '#475569', fontWeight: 'bold' }}>
+                                ➕ Add another student row
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                            <button type="button" onClick={() => { setIsManualAdding(false); setManualStudents([{name:'', rollNo:'', department:''}]); }} style={{ padding: '10px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer', color: '#475569', fontWeight: 'bold' }}>Cancel</button>
+                            <button type="submit" style={{ padding: '10px 16px', backgroundColor: '#4f46e5', border: 'none', borderRadius: '4px', cursor: 'pointer', color: 'white', fontWeight: 'bold' }}>Save All ({manualStudents.length})</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         )}
 
       </div>

@@ -17,6 +17,8 @@ This portal is strictly segregated into two core experiences: The Admin Interfac
 * **Bulk Data Upload (CSV):** Automatically process and store thousands of student records and test question banks via simple, error-handled CSV uploads.
 * **Hybrid Question Bank Manager (CRUD + Bulk):** A 3-pillar management system that empowers admins to fully control the question database. It includes a real-time table UI for surgical inline edits/deletions, a powerful "Append" bulk-upload mode, and a one-click "Replace All" nuclear option for uploading fresh semester data via CSV.
 * **Targeted Global Broadcasts:** Admins can pin targeted broadcast messages dynamically to specific pages (Home Page, Dashboard, or Live Test Page) using a centralized `BroadcastBanner` component.
+* **Comprehensive Document Exports (CSV & PDF):** The portal generates beautifully formatted records. Admins can instantly download robust PDF reports mirroring the on-screen table or export Transparency CSV files mapping students' raw answers directly to clean A, B, C, D formats for effortless OMR-style processing.
+* **Dynamic Bulk-Manual Registrations:** Seamlessly bridges the gap between massive CSV uploads and single-entry additions. The "Add Manually" tool allows admins to rapidly inject small batches of late-arriving students into the whitelist using a dynamic, multi-row modal that safely bulk-inserts to the database with a single click.
 * **Immutable Audit Logs & Database Reset:** The Lead Admin has access to highly secure, password-protected database reset tools (Nuclear Reset) to clear data for new batches, backed by an immutable Audit Log.
 
 ### 🎓 Student Features
@@ -47,9 +49,10 @@ This portal is strictly segregated into two core experiences: The Admin Interfac
   * bcryptjs (Password Hashing)
 * **File Storage (CDN):** 
   * Cloudflare R2 via `@aws-sdk/client-s3`
-* **Data Processing:** 
+* **Data Processing & Exports:** 
   * Multer (File uploads)
   * `csv-parser` (Bulk data ingestion)
+  * jsPDF & autoTable (Dynamic client-side PDF generation)
 
 ---
 

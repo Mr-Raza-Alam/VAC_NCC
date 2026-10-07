@@ -7,6 +7,7 @@ const upload = multer({ dest: '/tmp/uploads/' });
 
 router.post('/upload-vac-students', upload.single('csvFile'), recordController.uploadVacStudents);
 router.get('/vac-students', recordController.getVacStudents);
+router.post('/vac-students/manual-add', recordController.addVacStudentManually);
 router.put('/vac-students/:rollNo', recordController.updateVacStudent);
 router.delete('/vac-students/:rollNo', recordController.deleteVacStudent);
 

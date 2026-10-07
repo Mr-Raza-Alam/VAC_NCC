@@ -469,7 +469,13 @@ exports.getTransparencyReport = async (req, res) => {
             questions.forEach((q, index) => {
                 const colName = `Q${index + 1}`;
                 if (record.answers && record.answers[q._id.toString()]) {
-                    data[colName] = record.answers[q._id.toString()];
+                    const studentAnswerText = record.answers[q._id.toString()];
+                    const optIndex = q.options.indexOf(studentAnswerText);
+                    if (optIndex >= 0) {
+                        data[colName] = String.fromCharCode(65 + optIndex); // 0 -> A, 1 -> B, etc.
+                    } else {
+                        data[colName] = studentAnswerText; // Fallback just in case
+                    }
                 } else {
                     data[colName] = ''; // Blank if unattempted
                 }

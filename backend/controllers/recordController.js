@@ -120,3 +120,53 @@ exports.deleteVacStudent = async (req, res) => {
         res.status(500).json({ message: "Server error during deletion", error: err.message });
     }
 };
+
+exports.addVacStudentManually = async (req, res) => {
+    try {
+        const { students } = req.body;
+        
+        if (!students || !Array.isArray(students) || students.length === 0) {
+            return res.status(400).json({ message: "No students provided." });
+        }
+
+        const addedStudents = [];
+        const errors = [];
+
+        for (const student of students) {
+            const { name, rollNo, department } = student;
+            
+            if (!name || !rollNo || !department) {
+                errors.push(`Missing fields for student: ${name || 'Unknown'}`);
+                continue;
+            }
+
+            const existing = await VacStudent.findOne({ vac_rollNo: rollNo.trim() });
+            if (existing) {
+                errors.push(`Student with Roll No ${rollNo} already exists.`);
+                continue;
+            }
+
+            const newStudent = new VacStudent({
+                name: name.trim(),
+                vac_rollNo: rollNo.trim(),
+                department: department.trim()
+            });
+
+            await newStudent.save();
+            addedStudents.push(newStudent);
+        }
+
+        if (addedStudents.length === 0) {
+            return res.status(400).json({ message: "Failed to add any students.", errors });
+        }
+
+        let message = `Successfully added ${addedStudents.length} student(s).`;
+        if (errors.length > 0) {
+            message += ` However, ${errors.length} failed.`;
+        }
+
+        res.status(201).json({ message, addedStudents, errors });
+    } catch (err) {
+        res.status(500).json({ message: "Server error adding students", error: err.message });
+    }
+};
