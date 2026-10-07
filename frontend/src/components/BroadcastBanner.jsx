@@ -34,7 +34,7 @@ const BroadcastBanner = () => {
   let shouldShow = false;
   if (broadcast.targetPage === 'Home Page' && location.pathname === '/') {
     shouldShow = true;
-  } else if ((broadcast.targetPage === 'Dashboard' || broadcast.targetPage === 'Test-Page') && location.pathname === '/student/dashboard') {
+  } else if ((broadcast.targetPage === 'Dashboard' || broadcast.targetPage === 'Test Page') && location.pathname === '/student/dashboard') {
     shouldShow = true;
   }
 
@@ -53,8 +53,12 @@ const BroadcastBanner = () => {
       alignItems: 'center',
       justifyContent: 'center',
       gap: '12px',
-      zIndex: 40,
-      position: 'relative'
+      zIndex: 49,
+      position: 'fixed',
+      top: '90px',
+      left: 0,
+      width: '100%',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
     }}>
       <span style={{ fontSize: '1.2rem' }}>📢</span>
       <span>{broadcast.message}</span>
