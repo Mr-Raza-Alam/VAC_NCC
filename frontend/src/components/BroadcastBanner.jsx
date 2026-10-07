@@ -60,7 +60,7 @@ const BroadcastBanner = () => {
       width: '100%',
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
     }}>
-      <span style={{ fontSize: '1.2rem' }}>📢</span>
+      <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>📢</span>
       <span>{broadcast.message}</span>
     </div>
   );
