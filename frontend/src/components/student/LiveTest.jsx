@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUI } from '../../context/UIContext';
 
 const LiveTest = ({ testType, settings, onSubmit }) => {
   const { showFlash } = useUI();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // { questionId: selectedOption }
+  const answersRef = useRef({}); // Prevents stale closures in anti-cheat event listeners
   
   // Admin-configured duration is the single source of truth
   const configuredSeconds = (settings?.duration || 30) * 60;
@@ -28,6 +29,7 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
                 if (cappedRemaining > 0) {
                     setTimeLeft(cappedRemaining);
                     setAnswers(parsed.answers);
+                    answersRef.current = parsed.answers;
                 } else {
                     setTimeLeft(1); // will trigger auto-submit next tick
                 }
@@ -157,7 +159,11 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   }, [isLoading, isSubmitting]);
 
   const handleOptionChange = (qId, optionStr) => {
-    setAnswers(prev => ({ ...prev, [qId]: optionStr }));
+    setAnswers(prev => {
+      const updated = { ...prev, [qId]: optionStr };
+      answersRef.current = updated;
+      return updated;
+    });
   };
 
   const handleAutoSubmit = (msg) => {
@@ -176,9 +182,10 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     const token = localStorage.getItem('studentToken');
     
     // Format answers array: [{ questionId, selectedOption }]
-    const formattedAnswers = Object.keys(answers).map(qId => ({
+    const currentAnswers = answersRef.current;
+    const formattedAnswers = Object.keys(currentAnswers).map(qId => ({
       questionId: qId,
-      selectedOption: answers[qId]
+      selectedOption: currentAnswers[qId]
     }));
 
     try {
