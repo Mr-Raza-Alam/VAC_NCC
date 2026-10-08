@@ -273,18 +273,21 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
     presentCount = students.filter(st => {
       const record = tableData[st.vac_rollNo]?.[phaseKey];
       if (!record) return false;
-      return record.att === 'P' || (record.score !== undefined && record.score !== null && record.score !== '');
+      if (record.att === 'A') return false; // Strict override for manually marked Absentees
+      return record.att === 'P' || (record.score !== undefined && record.score !== null && record.score !== '' && record.score !== '-');
     }).length;
   } else if (activeSubTab.startsWith('practical_')) {
     presentCount = students.filter(st => {
       const record = tableData[st.vac_rollNo]?.practical;
       if (!record) return false;
-      return record.att === 'P' || (record.score !== undefined && record.score !== null && record.score !== '');
+      if (record.att === 'A') return false;
+      return record.att === 'P' || (record.score !== undefined && record.score !== null && record.score !== '' && record.score !== '-');
     }).length;
   } else if (activeSubTab.startsWith('ca_')) {
     presentCount = students.filter(st => {
       const record = tableData[st.vac_rollNo]?.ca;
       if (!record) return false;
+      if (record.att === 'A') return false;
       return record.att === 'P';
     }).length;
   }
