@@ -135,6 +135,20 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
        console.log("Fullscreen API not supported");
     }
 
+    // Request Wake Lock to prevent natural screen timeout
+    let wakeLock = null;
+    const requestWakeLock = async () => {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Screen Wake Lock active');
+            }
+        } catch (err) {
+            console.log(`Wake Lock error: ${err.message}`);
+        }
+    };
+    requestWakeLock();
+
     // Attach all strict listeners
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("blur", handleBlur);
@@ -154,6 +168,11 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
         // Exit fullscreen on cleanup
         if (document.fullscreenElement && document.exitFullscreen) {
             document.exitFullscreen().catch(err => console.log(err));
+        }
+
+        // Release Wake Lock
+        if (wakeLock !== null) {
+            wakeLock.release().catch(err => console.log(err));
         }
     };
   }, [isLoading, isSubmitting]);
