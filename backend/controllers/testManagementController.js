@@ -179,6 +179,12 @@ exports.cancelPhase = async (req, res) => {
 exports.getMasterResults = async (req, res) => {
     try {
         const students = await VacStudent.find({}, '-password').lean();
+        const settingsList = await TestSettings.find({}).lean();
+
+        const isFinal = (type) => {
+            const s = settingsList.find(s => s.testType === type);
+            return s && s.isFinalized;
+        };
         
         // Fetch all finalized data
         const internal1 = await InternalTestRecord.find({ testType: 'Int-1' }).populate('student', 'vac_rollNo');
@@ -235,12 +241,12 @@ exports.getMasterResults = async (req, res) => {
 
             return {
                 ...st,
-                int1: i1 ? (i1.attendance === 'A' ? 'Ab' : i1.score) : '-',
-                int2: i2 ? (i2.attendance === 'A' ? 'Ab' : i2.score) : '-',
-                int3: i3 ? (i3.attendance === 'A' ? 'Ab' : i3.score) : '-',
+                int1: i1 ? (i1.attendance === 'A' ? 'Ab' : i1.score) : (isFinal('Int-1') ? '0 (Ab)' : '-'),
+                int2: i2 ? (i2.attendance === 'A' ? 'Ab' : i2.score) : (isFinal('Int-2') ? '0 (Ab)' : '-'),
+                int3: i3 ? (i3.attendance === 'A' ? 'Ab' : i3.score) : (isFinal('Int-3') ? '0 (Ab)' : '-'),
                 intScore: intScore,
-                ca: ca ? caScore : '-',
-                pract: prac ? (prac.attendance === 'A' ? 'Ab' : pracScore) : '-',
+                ca: ca ? caScore : (isFinal('ca') ? 0 : '-'),
+                pract: prac ? (prac.attendance === 'A' ? 'Ab' : pracScore) : (isFinal('practical') ? '0 (Ab)' : '-'),
                 total: total
             };
         });
