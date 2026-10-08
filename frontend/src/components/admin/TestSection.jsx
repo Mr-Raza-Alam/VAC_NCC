@@ -168,10 +168,12 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               <option value="P">P</option>
               <option value="A">A</option>
             </select>
-          ) : (tableData[st.vac_rollNo]?.[phaseKey]?.att || '-')}
+          ) : (tableData[st.vac_rollNo]?.[phaseKey]?.att || (isResultView ? 'A' : '-'))}
         </td>
         <td style={{ padding: '12px 16px', color: '#94a3b8' }}>
-          {tableData[st.vac_rollNo]?.[phaseKey]?.score || '-'}
+          {(tableData[st.vac_rollNo]?.[phaseKey]?.score !== undefined && tableData[st.vac_rollNo]?.[phaseKey]?.score !== '')
+             ? tableData[st.vac_rollNo][phaseKey].score 
+             : (isResultView ? '0' : '-')}
         </td>
       </>
     );
@@ -193,7 +195,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               <option value="P">P</option>
               <option value="A">A</option>
             </select>
-          ) : (tableData[st.vac_rollNo]?.practical?.att || '-')}
+          ) : (tableData[st.vac_rollNo]?.practical?.att || (activeSubTab === 'practical_result' ? 'A' : '-'))}
         </td>
         <td style={{ padding: '12px 16px' }}>
           {activeSubTab === 'practical_entry' && testStates.practical !== 'done' ? (
@@ -206,7 +208,9 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               disabled={tableData[st.vac_rollNo]?.practical?.att === 'A'}
               style={{ padding: '4px 8px', width: '70px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
             />
-          ) : (tableData[st.vac_rollNo]?.practical?.score || '-')}
+          ) : ((tableData[st.vac_rollNo]?.practical?.score !== undefined && tableData[st.vac_rollNo]?.practical?.score !== '')
+             ? tableData[st.vac_rollNo].practical.score 
+             : (activeSubTab === 'practical_result' ? '0' : '-'))}
         </td>
       </>
     );
@@ -228,7 +232,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               <option value="P">P</option>
               <option value="A">A</option>
             </select>
-          ) : (tableData[st.vac_rollNo]?.ca?.att || '-')}
+          ) : (tableData[st.vac_rollNo]?.ca?.att || (activeSubTab === 'ca_result' ? 'A' : '-'))}
         </td>
         <td style={{ padding: '12px 16px' }}>
           {activeSubTab === 'ca_entry' && testStates.ca !== 'done' ? (
@@ -239,7 +243,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               disabled={tableData[st.vac_rollNo]?.ca?.att === 'A'}
               style={{ padding: '4px 8px', width: '60px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
             />
-          ) : (tableData[st.vac_rollNo]?.ca?.ass || '-')}
+          ) : ((tableData[st.vac_rollNo]?.ca?.ass !== undefined && tableData[st.vac_rollNo]?.ca?.ass !== '') ? tableData[st.vac_rollNo].ca.ass : (activeSubTab === 'ca_result' ? '0' : '-'))}
         </td>
         <td style={{ padding: '12px 16px' }}>
           {activeSubTab === 'ca_entry' && testStates.ca !== 'done' ? (
@@ -250,12 +254,12 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               disabled={tableData[st.vac_rollNo]?.ca?.att === 'A'}
               style={{ padding: '4px 8px', width: '60px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
             />
-          ) : (tableData[st.vac_rollNo]?.ca?.present || '-')}
+          ) : ((tableData[st.vac_rollNo]?.ca?.present !== undefined && tableData[st.vac_rollNo]?.ca?.present !== '') ? tableData[st.vac_rollNo].ca.present : (activeSubTab === 'ca_result' ? '0' : '-'))}
         </td>
         <td style={{ padding: '12px 16px', color: '#1e3a8a', fontWeight: 'bold' }}>
-          { (tableData[st.vac_rollNo]?.ca?.ass && tableData[st.vac_rollNo]?.ca?.present) 
+          { (tableData[st.vac_rollNo]?.ca?.ass !== undefined && tableData[st.vac_rollNo]?.ca?.present !== undefined && tableData[st.vac_rollNo]?.ca?.ass !== '' && tableData[st.vac_rollNo]?.ca?.present !== '') 
               ? (Number(tableData[st.vac_rollNo].ca.ass) + Number(tableData[st.vac_rollNo].ca.present)) 
-              : '-' 
+              : (activeSubTab === 'ca_result' ? '0' : '-') 
           }
         </td>
       </>
@@ -268,15 +272,21 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
     const phaseKey = activeSubTab.match(/internal_[123]/)?.[0] || 'internal_1';
     presentCount = students.filter(st => {
       const record = tableData[st.vac_rollNo]?.[phaseKey];
-      return record?.att === 'P' || (record?.score !== undefined && record?.score !== null && record?.score !== '');
+      if (!record) return false;
+      return record.att === 'P' || (record.score !== undefined && record.score !== null && record.score !== '');
     }).length;
   } else if (activeSubTab.startsWith('practical_')) {
     presentCount = students.filter(st => {
       const record = tableData[st.vac_rollNo]?.practical;
-      return record?.att === 'P' || (record?.score !== undefined && record?.score !== null && record?.score !== '');
+      if (!record) return false;
+      return record.att === 'P' || (record.score !== undefined && record.score !== null && record.score !== '');
     }).length;
   } else if (activeSubTab.startsWith('ca_')) {
-    presentCount = students.filter(st => tableData[st.vac_rollNo]?.ca?.att === 'P').length;
+    presentCount = students.filter(st => {
+      const record = tableData[st.vac_rollNo]?.ca;
+      if (!record) return false;
+      return record.att === 'P';
+    }).length;
   }
   const absentCount = students.length - presentCount;
 
@@ -289,7 +299,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
                {activeSubTab.replace(/_/g, ' ')}
              </span>
              <span style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px', fontWeight: '500' }}>
-               Total: {students.length} | [P: {presentCount}] / [A: {absentCount}]
+               Total : {students.length} | [P : {presentCount} / A : {absentCount} ]
              </span>
            </div>
            {renderFilterDropdown()}
