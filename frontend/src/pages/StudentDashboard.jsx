@@ -24,6 +24,7 @@ const StudentDashboard = () => {
   
   const [scores, setScores] = useState(null);
   const [testSettings, setTestSettings] = useState([]);
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   
   // Test Flow State Persistence
   const [testState, setTestState] = useState(() => sessionStorage.getItem('student_testState') || 'DASHBOARD'); 
@@ -101,6 +102,8 @@ const StudentDashboard = () => {
       }
     } catch (error) {
       console.error("Failed to fetch test settings");
+    } finally {
+      setIsSettingsLoading(false);
     }
   };
 
@@ -179,6 +182,14 @@ const StudentDashboard = () => {
     setResultTestType(type);
     setShowResultModal(true);
   };
+
+  if (isSettingsLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="loader" style={{ border: '4px solid #f3f3f3', borderTop: '4px solid #2563eb', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }}></div>
+      </div>
+    );
+  }
 
   if (!isOnboarded) {
     return (
