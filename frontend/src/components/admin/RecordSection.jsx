@@ -322,7 +322,10 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
           <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <div style={{ padding: '16px 24px', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.1rem' }}>Raw Student Records ({filteredStudents.length}/{students.length})</h3>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.1rem' }}>Raw Student Records</h3>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px', fontWeight: '500' }}>Total Students: {students.length} | Showing: {filteredStudents.length}</span>
+                </div>
                 {renderFilterAndSearch()}
                 <button 
                   onClick={() => setIsManualAdding(true)} 
@@ -477,7 +480,10 @@ const RecordSection = ({ students, fetchStudents, activeSubTab }) => {
       <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
         <div style={{ padding: '16px 24px', backgroundColor: '#eef2ff', borderBottom: '1px solid #c7d2fe', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-             <span style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '1.1rem' }}>Master Table - Final Results</span>
+             <div style={{ display: 'flex', flexDirection: 'column' }}>
+               <span style={{ fontWeight: 'bold', color: '#1e3a8a', fontSize: '1.1rem' }}>Master Table - Final Results</span>
+               <span style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px', fontWeight: '500' }}>Total Students: {masterData.length} | Showing: {filteredStudents.length}</span>
+             </div>
              {renderFilterAndSearch()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

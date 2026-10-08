@@ -262,13 +262,36 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
     );
   }
 
+  // Dynamic Stats Calculation for P/A
+  let presentCount = 0;
+  if (activeSubTab.startsWith('internal_')) {
+    const phaseKey = activeSubTab.match(/internal_[123]/)?.[0] || 'internal_1';
+    presentCount = students.filter(st => {
+      const record = tableData[st.vac_rollNo]?.[phaseKey];
+      return record?.att === 'P' || (record?.score !== undefined && record?.score !== null && record?.score !== '');
+    }).length;
+  } else if (activeSubTab.startsWith('practical_')) {
+    presentCount = students.filter(st => {
+      const record = tableData[st.vac_rollNo]?.practical;
+      return record?.att === 'P' || (record?.score !== undefined && record?.score !== null && record?.score !== '');
+    }).length;
+  } else if (activeSubTab.startsWith('ca_')) {
+    presentCount = students.filter(st => tableData[st.vac_rollNo]?.ca?.att === 'P').length;
+  }
+  const absentCount = students.length - presentCount;
+
   return (
     <div style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
       <div style={{ padding: '16px 24px', backgroundColor: '#eef2ff', borderBottom: '1px solid #c7d2fe', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-           <span style={{ fontWeight: 'bold', color: '#1e3a8a', textTransform: 'capitalize' }}>
-             {activeSubTab.replace(/_/g, ' ')}
-           </span>
+           <div style={{ display: 'flex', flexDirection: 'column' }}>
+             <span style={{ fontWeight: 'bold', color: '#1e3a8a', textTransform: 'capitalize', fontSize: '1.1rem' }}>
+               {activeSubTab.replace(/_/g, ' ')}
+             </span>
+             <span style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px', fontWeight: '500' }}>
+               Total: {students.length} | [P: {presentCount}] / [A: {absentCount}]
+             </span>
+           </div>
            {renderFilterDropdown()}
          </div>
          
