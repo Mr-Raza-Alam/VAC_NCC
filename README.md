@@ -21,6 +21,8 @@ This portal is strictly segregated into two core experiences: The Admin Interfac
 * **Dynamic Bulk-Manual Registrations:** Seamlessly bridges the gap between massive CSV uploads and single-entry additions. The "Add Manually" tool allows admins to rapidly inject small batches of late-arriving students into the whitelist using a dynamic, multi-row modal that safely bulk-inserts to the database with a single click.
 * **Interactive Data Sorting (Leaderboards):** The admin portal features dynamic 1-click sorting across all live test tables and the Master Table. Clicking any Score or Total column instantly ranks students, providing real-time leaderboards and immediate visibility into bottom performers.
 * **Immutable Audit Logs & Database Reset:** The Lead Admin has access to highly secure, password-protected database reset tools (Nuclear Reset) to clear data for new batches, backed by an immutable Audit Log.
+* **Geofenced Class Management (GPS Verification):** Admins can schedule Physical and Virtual classes. For physical classes, they can trigger a "Live Attendance Window", securely tracking students via the Haversine formula to ensure they are physically present within a 5-meter radius of the classroom.
+* **Auto-Calculated Continuous Assessment (CA):** A 1-click magic button automatically tallies the Geofenced attendance records for all students across the semester and perfectly applies the university grading rules (e.g., >85% = 5 marks) directly into the CA Master Table.
 
 ### 🎓 Student Features
 * **Verified Registration System:** Students can only register and access the portal if their exact `vac_rollNo` was pre-authorized and uploaded by an admin.
@@ -30,6 +32,7 @@ This portal is strictly segregated into two core experiences: The Admin Interfac
 * **Utility Profile Menu:** Students can pull up their digital **VAC Identity Card**, view the entire **Syllabus**, download study material from a **5-Unit Notes Modal**, and contact the lead developer via a **Technical Support Modal**.
 * **Profile Onboarding:** First-time logins require the student to complete a mandatory, clean onboarding flow (demographics, contact info, etc.) before gaining dashboard access.
 * **Self-Service Password Reset (Zero-Cost):** Students can securely reset forgotten passwords using their pre-onboarded Category and Date of Birth as internal security questions, bypassing the need for expensive third-party Email/SMS OTP services.
+* **Live Geofenced Attendance:** A dedicated "Classes & Attendance" tab allows students to securely mark their attendance in real-time. The portal utilizes the HTML5 Geolocation API, mathematically verifying their physical distance to the classroom and instantly blocking attempts to mark attendance from dorms or off-campus.
 
 ---
 
