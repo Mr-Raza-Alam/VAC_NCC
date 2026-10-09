@@ -20,3 +20,6 @@ uploads/
 
 # OS
 .DS_Store
+
+# Revisions
+backend_models_revision.md

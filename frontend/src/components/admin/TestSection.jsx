@@ -223,24 +223,20 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
         <td style={{ padding: '12px 16px', color: '#1e293b' }}>{st.department}</td>
         <td style={{ padding: '12px 16px' }}>
           {activeSubTab === 'ca_entry' && testStates.ca !== 'done' ? (
-            <select 
-              value={tableData[st.vac_rollNo]?.ca?.att || ''}
+            <input 
+              type="number" max="5" placeholder="/ 5" 
+              value={tableData[st.vac_rollNo]?.ca?.att !== undefined ? tableData[st.vac_rollNo].ca.att : ''}
               onChange={(e) => handleTableDataChange(st.vac_rollNo, 'ca', 'att', e.target.value)}
-              style={{ padding: '4px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-            >
-              <option value=""></option>
-              <option value="P">P</option>
-              <option value="A">A</option>
-            </select>
-          ) : (tableData[st.vac_rollNo]?.ca?.att || (activeSubTab === 'ca_result' ? 'A' : '-'))}
+              style={{ padding: '4px 8px', width: '60px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
+            />
+          ) : ((tableData[st.vac_rollNo]?.ca?.att !== undefined && tableData[st.vac_rollNo]?.ca?.att !== '') ? tableData[st.vac_rollNo].ca.att : (activeSubTab === 'ca_result' ? '0' : '-'))}
         </td>
         <td style={{ padding: '12px 16px' }}>
           {activeSubTab === 'ca_entry' && testStates.ca !== 'done' ? (
             <input 
               type="number" max="5" placeholder="/ 5" 
-              value={tableData[st.vac_rollNo]?.ca?.ass || ''}
+              value={tableData[st.vac_rollNo]?.ca?.ass !== undefined ? tableData[st.vac_rollNo].ca.ass : ''}
               onChange={(e) => handleTableDataChange(st.vac_rollNo, 'ca', 'ass', e.target.value)}
-              disabled={tableData[st.vac_rollNo]?.ca?.att === 'A'}
               style={{ padding: '4px 8px', width: '60px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
             />
           ) : ((tableData[st.vac_rollNo]?.ca?.ass !== undefined && tableData[st.vac_rollNo]?.ca?.ass !== '') ? tableData[st.vac_rollNo].ca.ass : (activeSubTab === 'ca_result' ? '0' : '-'))}
@@ -249,16 +245,15 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
           {activeSubTab === 'ca_entry' && testStates.ca !== 'done' ? (
             <input 
               type="number" max="5" placeholder="/ 5" 
-              value={tableData[st.vac_rollNo]?.ca?.present || ''}
+              value={tableData[st.vac_rollNo]?.ca?.present !== undefined ? tableData[st.vac_rollNo].ca.present : ''}
               onChange={(e) => handleTableDataChange(st.vac_rollNo, 'ca', 'present', e.target.value)}
-              disabled={tableData[st.vac_rollNo]?.ca?.att === 'A'}
               style={{ padding: '4px 8px', width: '60px', border: '1px solid #cbd5e1', borderRadius: '4px' }} 
             />
           ) : ((tableData[st.vac_rollNo]?.ca?.present !== undefined && tableData[st.vac_rollNo]?.ca?.present !== '') ? tableData[st.vac_rollNo].ca.present : (activeSubTab === 'ca_result' ? '0' : '-'))}
         </td>
         <td style={{ padding: '12px 16px', color: '#1e3a8a', fontWeight: 'bold' }}>
-          { (tableData[st.vac_rollNo]?.ca?.ass !== undefined && tableData[st.vac_rollNo]?.ca?.present !== undefined && tableData[st.vac_rollNo]?.ca?.ass !== '' && tableData[st.vac_rollNo]?.ca?.present !== '') 
-              ? (Number(tableData[st.vac_rollNo].ca.ass) + Number(tableData[st.vac_rollNo].ca.present)) 
+          { (tableData[st.vac_rollNo]?.ca?.att !== undefined && tableData[st.vac_rollNo]?.ca?.ass !== undefined && tableData[st.vac_rollNo]?.ca?.present !== undefined && tableData[st.vac_rollNo]?.ca?.att !== '' && tableData[st.vac_rollNo]?.ca?.ass !== '' && tableData[st.vac_rollNo]?.ca?.present !== '') 
+              ? (Number(tableData[st.vac_rollNo].ca.att) + Number(tableData[st.vac_rollNo].ca.ass) + Number(tableData[st.vac_rollNo].ca.present)) 
               : (activeSubTab === 'ca_result' ? '0' : '-') 
           }
         </td>
@@ -287,8 +282,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
     presentCount = students.filter(st => {
       const record = tableData[st.vac_rollNo]?.ca;
       if (!record) return false;
-      if (record.att === 'A') return false;
-      return record.att === 'P';
+      return (record.att !== undefined && record.att !== '') || (record.ass !== undefined && record.ass !== '') || (record.present !== undefined && record.present !== '');
     }).length;
   }
   const absentCount = students.length - presentCount;

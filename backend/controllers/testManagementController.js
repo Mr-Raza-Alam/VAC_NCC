@@ -383,13 +383,7 @@ exports.getLiveTableData = async (req, res) => {
             if (r.student && r.student.vac_rollNo) {
                 const rollNo = r.student.vac_rollNo;
                 initStudent(rollNo);
-                // Convert numerical attendance back to P/A for frontend state
-                const att = (r.attendance > 0 || r.assignment > 0) ? 'P' : ''; 
-                // Note: since frontend uses P/A, we map it roughly. 
-                // If we want exact, we need the exact P/A. But let's let frontend handle it or just return what we have.
-                // Actually, frontend uses 'att' for P/A. Let's just trust the P/A logic in CA isn't strictly necessary or we just pass it.
-                // Wait, CA attendance is 0-5. So att="P" is just a UI toggle. We'll leave att="" if 0.
-                tableData[rollNo]['ca'] = { att: r.attendance > 0 ? 'P' : '', ass: r.assignment, present: r.attendance };
+                tableData[rollNo]['ca'] = { att: r.attendance, ass: r.assignment, present: r.presentation };
             }
         });
 
@@ -431,11 +425,9 @@ exports.updateLiveTableData = async (req, res) => {
         } else if (phaseKey === 'ca') {
             const update = {};
             // For CA, field is 'att', 'ass', or 'present'
-            // But 'att' is purely a UI toggle, it's not in schema as String, it's Number. 
-            // We ignore 'att' saves to DB for CA, or we save it? Schema says attendance: Number.
-            // Let's only update if field is 'ass' or 'present'
+            if (field === 'att') update.attendance = Number(value) || 0;
             if (field === 'ass') update.assignment = Number(value) || 0;
-            if (field === 'present') update.attendance = Number(value) || 0;
+            if (field === 'present') update.presentation = Number(value) || 0;
 
             if (Object.keys(update).length > 0) {
                 await ContinuousAssessment.findOneAndUpdate(
