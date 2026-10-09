@@ -9,6 +9,31 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState(null);
 
+  const handleAutoCalculateCA = async () => {
+    if (!window.confirm("Are you sure you want to auto-calculate CA Attendance marks based on Class Schedules? This will overwrite the 'Att.' column for all students.")) return;
+    showLoader();
+    try {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/classes/auto-ca`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showFlash(data.message, "success");
+        window.location.reload(); // Quick refresh to pull new CA data
+      } else {
+        showFlash(data.message || "Failed to auto-calculate", "error");
+      }
+    } catch (err) {
+      showFlash("Server error during auto-calculation", "error");
+    } finally {
+      hideLoader();
+    }
+  };
+
   const downloadTransparencyReport = async (phaseKey, format = 'csv') => {
     showLoader();
     try {
@@ -365,6 +390,15 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
          {/* Practical & CA Finalize Button */}
          {(activeSubTab === 'practical_entry' || activeSubTab === 'ca_entry') && (
            <div style={{ display: 'flex', gap: '10px' }}>
+             {activeSubTab === 'ca_entry' && (
+               <button 
+                 onClick={handleAutoCalculateCA}
+                 style={{ backgroundColor: '#8b5cf6', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                 title="Automatically calculates attendance marks out of 5 using Geofenced Class Records"
+               >
+                 ✨ Auto-Set Attendance Marks
+               </button>
+             )}
              <button 
                onClick={() => {
                   const phase = activeSubTab === 'practical_entry' ? 'practical' : 'ca';

@@ -5,6 +5,7 @@ import { useUI } from '../context/UIContext';
 import BranchCard from '../components/student/BranchCard';
 import TestInstructions from '../components/student/TestInstructions';
 import LiveTest from '../components/student/LiveTest';
+import StudentClasses from '../components/student/StudentClasses';
 import IdCardModal from '../components/student/modals/IdCardModal';
 import NotesModal from '../components/student/modals/NotesModal';
 import SupportModal from '../components/student/modals/SupportModal';
@@ -317,6 +318,9 @@ const StudentDashboard = () => {
           <button style={tabStyle(activeTab === 'continuous_assessment')} onClick={() => setActiveTab('continuous_assessment')}>
             Continuous Assessment
           </button>
+          <button style={tabStyle(activeTab === 'classes')} onClick={() => setActiveTab('classes')}>
+            Classes & Attendance
+          </button>
         </div>
 
         {/* Tab Content (Branch Cards) */}
@@ -403,6 +407,10 @@ const StudentDashboard = () => {
                 onViewResult={() => alert(`Result: ${scores?.continuous_assessment?.presentation}/5`)}
               />
             </div>
+          )}
+
+          {activeTab === 'classes' && (
+            <StudentClasses />
           )}
 
         </div>

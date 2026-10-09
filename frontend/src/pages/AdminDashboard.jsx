@@ -4,6 +4,7 @@ import '../styles/adminDashboard.css';
 import RecordSection from '../components/admin/RecordSection';
 import TestSection from '../components/admin/TestSection';
 import SystemSection from '../components/admin/SystemSection';
+import ClassManagement from '../components/admin/ClassManagement';
 import AdminSidebar from '../components/admin/AdminSidebar';
 
 const AdminDashboard = () => {
@@ -332,6 +333,10 @@ const AdminDashboard = () => {
     
     if (activeSection === 'system') {
       return <SystemSection activeSubTab={activeSubTab} />;
+    }
+
+    if (activeSection === 'class_management') {
+      return <ClassManagement />;
     }
 
     return null;

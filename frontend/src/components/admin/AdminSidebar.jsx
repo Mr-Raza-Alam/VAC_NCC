@@ -55,8 +55,22 @@ const AdminSidebar = ({
           <h2 style={{ fontSize: '1.2rem', margin: 0, fontWeight: '800', letterSpacing: '0.05em', color: '#1e293b' }}>Admin Panel</h2>
         </div>
 
-        <nav style={{ flex: 1, padding: '16px 0' }}>
+        <nav style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
           
+          {/* CLASS MANAGEMENT SECTION */}
+          {hasPermission('ACCESS_TEST') ? (
+            <div className="sidebar-section" style={{ flexShrink: 0 }}>
+              <div className="sidebar-heading" style={{ padding: '10px 20px', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Classes</div>
+              <button 
+                className={`sidebar-btn ${activeSubTab === 'class_schedule' ? 'active' : ''}`}
+                onClick={() => handleTabClick('class_management', 'class_schedule')}
+                style={btnStyle(activeSubTab === 'class_schedule')}
+              >
+                Schedule & Attendance
+              </button>
+            </div>
+          ) : null}
+
           {/* TEST SECTION */}
           {hasPermission('ACCESS_TEST') ? (
           <div className="sidebar-section" style={{ flexShrink: 0 }}>

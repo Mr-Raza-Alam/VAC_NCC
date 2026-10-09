@@ -58,6 +58,7 @@ const recordRoutes = require('./routes/recordRoutes');
 const systemRoutes = require('./routes/systemRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const classRoutes = require('./routes/classRoutes');
 
 // Basic route to test server
 app.get('/', (req, res) => {
@@ -72,6 +73,7 @@ app.use('/api/record', recordRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/classes', classRoutes);
 
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
