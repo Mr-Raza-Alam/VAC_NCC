@@ -116,13 +116,27 @@ exports.submitTest = async (req, res) => {
             return res.status(403).json({ message: "Test is not active or closed" });
         }
 
+        // Idempotency: Protect existing submitted score against duplicate / retry overwrites
+        const existingRecord = await InternalTestRecord.findOne({ student: studentId, testType: tType });
+        if (existingRecord && existingRecord.isSubmitted) {
+            return res.status(200).json({ 
+                message: "Test already submitted successfully", 
+                score: existingRecord.score 
+            });
+        }
+
         let score = 0;
         const savedAnswers = {};
         const marksPerQuestion = Number(settings.marksPerQuestion) || 1;
         
-        for (const ans of answers) {
+        // High-concurrency optimization: fetch all questions in ONE single query instead of N individual queries
+        const allQuestions = await Question.find({ testType: tType }).lean();
+        const questionMap = new Map(allQuestions.map(q => [q._id.toString(), q]));
+
+        for (const ans of (answers || [])) {
+            if (!ans || !ans.questionId) continue;
             savedAnswers[ans.questionId] = ans.selectedOption;
-            const question = await Question.findById(ans.questionId);
+            const question = questionMap.get(String(ans.questionId));
             // Support both correctAnswer and correctOption based on schema evolution
             if (question && (question.correctAnswer === ans.selectedOption || question.correctOption === ans.selectedOption)) {
                 score += marksPerQuestion;
@@ -160,9 +174,20 @@ exports.getTestResultDetails = async (req, res) => {
             return res.status(403).json({ message: "Results are not yet published for this test." });
         }
 
-        const record = await InternalTestRecord.findOne({ student: studentId, testType: mappedType });
+        let record = await InternalTestRecord.findOne({ student: studentId, testType: mappedType });
+        let isAbsent = false;
+
         if (!record) {
-            return res.status(404).json({ message: "No test record found." });
+            if (settings.isFinalized || settings.resultsVisibility === 'ON') {
+                isAbsent = true;
+                record = {
+                    score: 0,
+                    updatedAt: settings.updatedAt || new Date(),
+                    answers: new Map()
+                };
+            } else {
+                return res.status(404).json({ message: "No test record found." });
+            }
         }
 
         const questions = await Question.find({ testType: mappedType }).sort({ createdAt: 1 });
@@ -192,7 +217,8 @@ exports.getTestResultDetails = async (req, res) => {
                 testType: mappedType,
                 score: record.score,
                 total: questions.length * (settings.marksPerQuestion || 1),
-                submittedAt: record.updatedAt
+                submittedAt: record.updatedAt,
+                isAbsent: isAbsent
             },
             resultDetails
         });

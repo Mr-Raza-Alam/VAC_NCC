@@ -32,7 +32,14 @@ const TestInstructions = ({ testType, onAgree }) => {
 
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <button 
-          onClick={onAgree} 
+          onClick={() => {
+            try {
+              if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
+              }
+            } catch (e) {}
+            onAgree();
+          }} 
           disabled={!isChecked}
           style={{
             backgroundColor: isChecked ? '#2563eb' : '#94a3b8',

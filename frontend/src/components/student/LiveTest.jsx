@@ -12,6 +12,7 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   const [timeLeft, setTimeLeft] = useState(configuredSeconds); 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingOrPromptingRef = useRef(false);
   const [antiCheatTriggered, setAntiCheatTriggered] = useState(false);
 
   // Restore state resilience from localStorage (only for crash recovery mid-test)
@@ -107,7 +108,7 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
 
     // 2. Window Blur Lock (Catches OS-level overlays like AI assistants, notifications, split screen)
     const handleBlur = () => {
-        if (!isSubmitting && !isLoading) {
+        if (!isSubmitting && !isLoading && !isSubmittingOrPromptingRef.current) {
             setAntiCheatTriggered(true);
             handleAutoSubmit("Test auto-submitted due to loss of window focus. (You interacted with an external overlay or app).");
         }
@@ -191,8 +192,11 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   };
 
   const handleManualSubmit = () => {
+    isSubmittingOrPromptingRef.current = true;
     if (window.confirm("Are you sure you want to submit? You cannot change your answers after submitting.")) {
       submitTestData();
+    } else {
+      isSubmittingOrPromptingRef.current = false;
     }
   };
 

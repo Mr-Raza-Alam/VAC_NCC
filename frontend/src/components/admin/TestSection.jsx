@@ -336,6 +336,16 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
                  <>
                    {currentState === 'pending' && (
                      <div style={{ display: 'flex', gap: '10px' }}>
+                       <button 
+                         onClick={() => {
+                           students.forEach(st => handleTableDataChange(st.vac_rollNo, phaseKey, 'att', 'P'));
+                           showFlash("All students marked Present (P)!", "success");
+                         }} 
+                         style={{ backgroundColor: '#10b981', color: 'white', padding: '6px 14px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                         title="Quickly mark all students as Present"
+                       >
+                         ✔ Mark All P
+                       </button>
                        <button onClick={() => handleTestStateChange(phaseKey, 'active')} style={{ backgroundColor: '#2563eb', color: 'white', padding: '6px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                          ▶ Activate Test
                        </button>

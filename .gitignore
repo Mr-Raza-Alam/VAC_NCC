@@ -11,6 +11,8 @@ node_modules/
 # Env
 .env
 .env.local
+seed.js
+backend/seed.js
 
 # Build
 dist/

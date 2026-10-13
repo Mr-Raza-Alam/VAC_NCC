@@ -25,7 +25,27 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
   let statusColor = "#64748b"; // gray
   let actionButton = null;
 
-  if (settings?.isCanceled) {
+  if (settings?.isComingSoon || testType === 'classes') {
+    statusText = "🚀 New Feature Coming Soon!";
+    statusColor = "#6366f1"; // vibrant indigo
+    actionButton = (
+      <div style={{ 
+        marginTop: '10px', 
+        padding: '14px 18px', 
+        backgroundColor: '#eef2ff', 
+        border: '1px solid #c7d2fe', 
+        borderRadius: '12px', 
+        color: '#4338ca', 
+        fontSize: '0.92rem', 
+        lineHeight: '1.6', 
+        textAlign: 'center',
+        maxWidth: '420px'
+      }}>
+        ✨ <strong>Exciting Updates Ahead!</strong><br />
+        We are crafting an interactive classroom & digital attendance tracking hub for Assam University VAC students. Stay tuned!
+      </div>
+    );
+  } else if (settings?.isCanceled) {
     statusText = "CANCELED";
     statusColor = "#ef4444"; // red
     actionButton = (

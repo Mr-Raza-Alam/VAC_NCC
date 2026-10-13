@@ -410,7 +410,13 @@ const StudentDashboard = () => {
           )}
 
           {activeTab === 'classes' && (
-            <StudentClasses />
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <BranchCard 
+                title="Classroom & Attendance Tracking" 
+                testType="classes"
+                settings={{ isComingSoon: true }}
+              />
+            </div>
           )}
 
         </div>

@@ -66,7 +66,12 @@ const ResultModal = ({ isOpen, onClose, testType }) => {
                 <div><strong>Department:</strong> {resultData.studentDetails.department}</div>
                 <div><strong>Test Date:</strong> {new Date(resultData.testDetails.submittedAt).toLocaleString()}</div>
                 <div style={{ gridColumn: '1 / -1', fontSize: '1.2rem', marginTop: '10px', color: '#1e3a8a' }}>
-                  <strong>Final Score: </strong> <span style={{ color: resultData.testDetails.score > (resultData.testDetails.total/2) ? '#16a34a' : '#dc2626' }}>{resultData.testDetails.score} / {resultData.testDetails.total}</span>
+                  <strong>Final Score: </strong> 
+                  {resultData.testDetails.isAbsent ? (
+                    <span style={{ color: '#dc2626', fontWeight: 'bold' }}>0 / {resultData.testDetails.total} (ABSENT)</span>
+                  ) : (
+                    <span style={{ color: resultData.testDetails.score > (resultData.testDetails.total/2) ? '#16a34a' : '#dc2626' }}>{resultData.testDetails.score} / {resultData.testDetails.total}</span>
+                  )}
                 </div>
               </div>
             </div>
