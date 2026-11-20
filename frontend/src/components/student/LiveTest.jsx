@@ -14,6 +14,10 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingOrPromptingRef = useRef(false);
   const [antiCheatTriggered, setAntiCheatTriggered] = useState(false);
+  const [warningCount, setWarningCount] = useState(0);
+  const warningCountRef = useRef(0);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningReason, setWarningReason] = useState('');
 
   // Restore state resilience from localStorage (only for crash recovery mid-test)
   useEffect(() => {
@@ -21,6 +25,10 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     if (savedState) {
         try {
             const parsed = JSON.parse(savedState);
+            if (parsed.warningCount !== undefined) {
+                setWarningCount(parsed.warningCount);
+                warningCountRef.current = parsed.warningCount;
+            }
             // Only restore if they actually had in-progress answers
             if (parsed.answers && Object.keys(parsed.answers).length > 0) {
                 const timePassed = Math.floor((Date.now() - parsed.timestamp) / 1000);
@@ -51,9 +59,10 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
       localStorage.setItem(`vac_test_state_${testType}`, JSON.stringify({
           answers,
           timeLeft,
+          warningCount: warningCountRef.current,
           timestamp: Date.now()
       }));
-  }, [answers, timeLeft, testType, isLoading, isSubmitting]);
+  }, [answers, timeLeft, warningCount, testType, isLoading, isSubmitting]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -94,31 +103,46 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     return () => clearInterval(timer);
   }, [isLoading, isSubmitting]);
 
-  // Comprehensive Anti-cheating mechanism
+  // Comprehensive Anti-cheating mechanism (1 Warning Grace: 0/1)
   useEffect(() => {
     if (isLoading || isSubmitting) return;
 
-    // 1. Tab Visibility Lock
-    const handleVisibilityChange = () => {
-        if (document.visibilityState === 'hidden' && !isSubmitting && !isLoading) {
+    const triggerAntiCheat = (reason) => {
+        if (isSubmitting || isLoading || isSubmittingOrPromptingRef.current) return;
+
+        if (warningCountRef.current === 0) {
+            // First violation -> Strike 1 of 1 (0/1 -> 1/1)
+            warningCountRef.current = 1;
+            setWarningCount(1);
+            setWarningReason(reason);
+            isSubmittingOrPromptingRef.current = true;
+            setShowWarningModal(true);
+            showFlash("⚠️ Warning (1/1): Focus loss or tab switch detected!", "warning");
+        } else {
+            // Second violation -> Auto-submit
             setAntiCheatTriggered(true);
-            handleAutoSubmit("Test auto-submitted due to tab switching (Anti-Cheating protocol triggered).");
+            handleAutoSubmit(`Test auto-submitted: Exceeded maximum allowed warnings (2nd violation: ${reason}).`);
         }
     };
 
-    // 2. Window Blur Lock (Catches OS-level overlays like AI assistants, notifications, split screen)
+    // 1. Tab Visibility Lock
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden' && !isSubmitting && !isLoading && !isSubmittingOrPromptingRef.current) {
+            triggerAntiCheat("Tab switching or browser minimization");
+        }
+    };
+
+    // 2. Window Blur Lock (Catches OS-level overlays like notifications, calls, split screen)
     const handleBlur = () => {
         if (!isSubmitting && !isLoading && !isSubmittingOrPromptingRef.current) {
-            setAntiCheatTriggered(true);
-            handleAutoSubmit("Test auto-submitted due to loss of window focus. (You interacted with an external overlay or app).");
+            triggerAntiCheat("Loss of window focus (interacted with external app or notification)");
         }
     };
 
     // 3. Fullscreen Lock (If they exit fullscreen, they are penalized)
     const handleFullscreenChange = () => {
-        if (!document.fullscreenElement && !isSubmitting && !isLoading) {
-            setAntiCheatTriggered(true);
-            handleAutoSubmit("Test auto-submitted because you exited fullscreen mode.");
+        if (!document.fullscreenElement && !isSubmitting && !isLoading && !isSubmittingOrPromptingRef.current) {
+            triggerAntiCheat("Exited fullscreen mode");
         }
     };
 
@@ -178,6 +202,19 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     };
   }, [isLoading, isSubmitting]);
 
+  const handleResumeFromWarning = () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } catch (e) {}
+
+    setShowWarningModal(false);
+    setTimeout(() => {
+      isSubmittingOrPromptingRef.current = false;
+    }, 500);
+  };
+
   const handleOptionChange = (qId, optionStr) => {
     setAnswers(prev => {
       const updated = { ...prev, [qId]: optionStr };
@@ -196,7 +233,9 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
     if (window.confirm("Are you sure you want to submit? You cannot change your answers after submitting.")) {
       submitTestData();
     } else {
-      isSubmittingOrPromptingRef.current = false;
+      setTimeout(() => {
+        isSubmittingOrPromptingRef.current = false;
+      }, 500);
     }
   };
 
@@ -251,6 +290,85 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
       msUserSelect: 'none'
     }}>
       
+      {/* Anti-Cheating Strike 1 Warning Modal */}
+      {showWarningModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.92)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            maxWidth: '480px',
+            width: '100%',
+            padding: '30px 24px',
+            textAlign: 'center',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            <div style={{ fontSize: '2.8rem', marginBottom: '8px' }}>⚠️</div>
+            <h2 style={{ color: '#dc2626', margin: '0 0 10px 0', fontSize: '1.4rem' }}>
+              Anti-Cheating Warning
+            </h2>
+            <div style={{
+              display: 'inline-block',
+              backgroundColor: '#fee2e2',
+              color: '#b91c1c',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontWeight: '700',
+              fontSize: '0.9rem',
+              marginBottom: '16px'
+            }}>
+              Warning: (1/1) Used
+            </div>
+            <p style={{ color: '#334155', fontSize: '0.95rem', lineHeight: '1.6', margin: '0 0 16px 0' }}>
+              {warningReason ? `Reason: ${warningReason}.` : "A window focus loss, tab switch, or app minimization was detected."}
+            </p>
+            <div style={{
+              backgroundColor: '#fff1f2',
+              color: '#991b1b',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              fontSize: '0.88rem',
+              fontWeight: '600',
+              border: '1px solid #fecdd3',
+              marginBottom: '24px',
+              textAlign: 'left',
+              lineHeight: '1.5'
+            }}>
+              🚨 <strong>Final Warning:</strong> You have reached your limit (1/1). Any further tab switch, swipe gesture, notification touch, or app exit will <strong>PERMANENTLY auto-submit</strong> your test immediately.
+            </div>
+            <button
+              onClick={handleResumeFromWarning}
+              style={{
+                backgroundColor: '#2563eb',
+                color: 'white',
+                border: 'none',
+                padding: '14px 28px',
+                borderRadius: '8px',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                width: '100%',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+              }}
+            >
+              Resume Test & Re-enter Fullscreen 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* STICKY TIMER (UI/UX Requirement) */}
       <div style={{
         position: 'sticky',
@@ -265,9 +383,27 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
         boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
         borderBottomLeftRadius: '16px',
         borderBottomRightRadius: '16px',
-        marginBottom: '40px'
+        marginBottom: '40px',
+        flexWrap: 'wrap',
+        gap: '12px'
       }}>
-        <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{testType.replace('_', ' ').toUpperCase()}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{testType.replace('_', ' ').toUpperCase()}</h2>
+          <div style={{
+            backgroundColor: warningCount > 0 ? '#ef4444' : 'rgba(255,255,255,0.15)',
+            border: warningCount > 0 ? '1px solid #f87171' : '1px solid rgba(255,255,255,0.3)',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            fontSize: '0.82rem',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span>⚠️ Warning:</span>
+            <span>({warningCount}/1)</span>
+          </div>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '1.1rem', fontWeight: '600' }}>Time Left:</span>
           <span style={{ 
