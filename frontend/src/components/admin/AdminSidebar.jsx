@@ -17,11 +17,20 @@ const btnStyle = (isActive, isDropdown = false) => ({
   borderLeft: isActive ? '4px solid #2563eb' : '4px solid transparent'
 });
 
-// Helper style for nested items
-const nestedBtnStyle = (isActive) => ({
+// Helper style for nested items (Internal 1, 2, 3 and Practical/CA children)
+const nestedBtnStyle = (isActive, isDropdown = false) => ({
+  ...btnStyle(isActive, isDropdown),
+  paddingLeft: '36px',
+  fontSize: '0.88rem',
+  backgroundColor: isActive ? '#e0e7ff' : 'transparent',
+  borderLeft: isActive ? '4px solid #4f46e5' : '4px solid transparent'
+});
+
+// Helper style for sub-nested items (Entry-Table and Result-Table under each Internal)
+const subNestedBtnStyle = (isActive) => ({
   ...btnStyle(isActive),
-  paddingLeft: '40px',
-  fontSize: '0.85rem',
+  paddingLeft: '52px',
+  fontSize: '0.82rem',
   backgroundColor: isActive ? '#e0e7ff' : 'transparent',
   borderLeft: isActive ? '4px solid #4f46e5' : '4px solid transparent'
 });
@@ -34,9 +43,12 @@ const AdminSidebar = ({
   activeSubTab, 
   handleTabClick 
 }) => {
-  const [isWrittenTestOpen, setIsWrittenTestOpen] = useState(false);
-  const [isPracticalTestOpen, setIsPracticalTestOpen] = useState(false);
-  const [isCAOpen, setIsCAOpen] = useState(false);
+  const [isWrittenTestOpen, setIsWrittenTestOpen] = useState(() => activeSubTab.startsWith('internal_'));
+  const [isInternal1Open, setIsInternal1Open] = useState(() => activeSubTab.startsWith('internal_1'));
+  const [isInternal2Open, setIsInternal2Open] = useState(() => activeSubTab.startsWith('internal_2'));
+  const [isInternal3Open, setIsInternal3Open] = useState(() => activeSubTab.startsWith('internal_3'));
+  const [isPracticalTestOpen, setIsPracticalTestOpen] = useState(() => activeSubTab.startsWith('practical_'));
+  const [isCAOpen, setIsCAOpen] = useState(() => activeSubTab.startsWith('ca_'));
 
   return (
     <>
@@ -88,17 +100,53 @@ const AdminSidebar = ({
             
             {isWrittenTestOpen && (
               <div style={{ backgroundColor: '#f8fafc' }}>
-                <div className="sidebar-subheading" style={{ padding: '8px 20px 4px 40px', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Internal 1</div>
-                <button onClick={() => handleTabClick('test', 'internal_1_entry')} style={nestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_1_entry')}>Entry-Table</button>
-                <button onClick={() => handleTabClick('test', 'internal_1_result')} style={nestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_1_result')}>Result-Table</button>
+                {/* Internal 1 Sub-compartment */}
+                <button 
+                  className="sidebar-btn"
+                  onClick={() => setIsInternal1Open(!isInternal1Open)}
+                  style={nestedBtnStyle(false, true)}
+                >
+                  <span style={{flex: 1, textAlign: 'left'}}>Internal 1</span>
+                  <span style={{ fontSize: '0.75rem' }}>{isInternal1Open ? '▼' : '▶'}</span>
+                </button>
+                {isInternal1Open && (
+                  <div style={{ backgroundColor: '#f1f5f9' }}>
+                    <button onClick={() => handleTabClick('test', 'internal_1_entry')} style={subNestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_1_entry')}>Entry-Table</button>
+                    <button onClick={() => handleTabClick('test', 'internal_1_result')} style={subNestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_1_result')}>Result-Table</button>
+                  </div>
+                )}
 
-                <div className="sidebar-subheading" style={{ padding: '8px 20px 4px 40px', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Internal 2</div>
-                <button onClick={() => handleTabClick('test', 'internal_2_entry')} style={nestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_2_entry')}>Entry-Table</button>
-                <button onClick={() => handleTabClick('test', 'internal_2_result')} style={nestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_2_result')}>Result-Table</button>
+                {/* Internal 2 Sub-compartment */}
+                <button 
+                  className="sidebar-btn"
+                  onClick={() => setIsInternal2Open(!isInternal2Open)}
+                  style={nestedBtnStyle(false, true)}
+                >
+                  <span style={{flex: 1, textAlign: 'left'}}>Internal 2</span>
+                  <span style={{ fontSize: '0.75rem' }}>{isInternal2Open ? '▼' : '▶'}</span>
+                </button>
+                {isInternal2Open && (
+                  <div style={{ backgroundColor: '#f1f5f9' }}>
+                    <button onClick={() => handleTabClick('test', 'internal_2_entry')} style={subNestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_2_entry')}>Entry-Table</button>
+                    <button onClick={() => handleTabClick('test', 'internal_2_result')} style={subNestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_2_result')}>Result-Table</button>
+                  </div>
+                )}
 
-                <div className="sidebar-subheading" style={{ padding: '8px 20px 4px 40px', color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Internal 3</div>
-                <button onClick={() => handleTabClick('test', 'internal_3_entry')} style={nestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_3_entry')}>Entry-Table</button>
-                <button onClick={() => handleTabClick('test', 'internal_3_result')} style={nestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_3_result')}>Result-Table</button>
+                {/* Internal 3 Sub-compartment */}
+                <button 
+                  className="sidebar-btn"
+                  onClick={() => setIsInternal3Open(!isInternal3Open)}
+                  style={nestedBtnStyle(false, true)}
+                >
+                  <span style={{flex: 1, textAlign: 'left'}}>Internal 3</span>
+                  <span style={{ fontSize: '0.75rem' }}>{isInternal3Open ? '▼' : '▶'}</span>
+                </button>
+                {isInternal3Open && (
+                  <div style={{ backgroundColor: '#f1f5f9' }}>
+                    <button onClick={() => handleTabClick('test', 'internal_3_entry')} style={subNestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_3_entry')}>Entry-Table</button>
+                    <button onClick={() => handleTabClick('test', 'internal_3_result')} style={subNestedBtnStyle(activeSection === 'test' && activeSubTab === 'internal_3_result')}>Result-Table</button>
+                  </div>
+                )}
               </div>
             )}
 
