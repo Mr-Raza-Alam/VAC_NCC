@@ -86,12 +86,19 @@ exports.getStudentDashboardScores = async (req, res) => {
 exports.fetchQuestions = async (req, res) => {
     try {
         const { testType } = req.params;
+        const studentId = req.user.id;
         const testTypeMap = { 'internal_1': 'Int-1', 'internal_2': 'Int-2', 'internal_3': 'Int-3' };
         const tType = testTypeMap[testType] || testType;
 
         const settings = await TestSettings.findOne({ testType: tType });
         if (!settings || !settings.isActive) {
             return res.status(403).json({ message: "Test is not active" });
+        }
+
+        // Prevent student from re-accessing questions if already submitted/penalized
+        const existingRecord = await InternalTestRecord.findOne({ student: studentId, testType: tType });
+        if (existingRecord && existingRecord.isSubmitted) {
+            return res.status(403).json({ message: "You have already completed and submitted this test." });
         }
         
         const questions = await Question.find({ testType: tType }).select('-correctOption -correctAnswer');

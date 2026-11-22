@@ -366,7 +366,11 @@ exports.getLiveTableData = async (req, res) => {
                 initStudent(rollNo);
                 const phase = testMapRev[r.testType];
                 if (phase) {
-                    tableData[rollNo][phase] = { att: r.attendance, score: r.score };
+                    tableData[rollNo][phase] = { 
+                        att: r.attendance || (r.isSubmitted ? 'P' : ''), 
+                        score: r.score,
+                        isSubmitted: r.isSubmitted 
+                    };
                 }
             }
         });

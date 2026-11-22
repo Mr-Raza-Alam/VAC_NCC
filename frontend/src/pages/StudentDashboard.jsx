@@ -31,6 +31,13 @@ const StudentDashboard = () => {
   const [testState, setTestState] = useState(() => sessionStorage.getItem('student_testState') || 'DASHBOARD'); 
   const [currentTestType, setCurrentTestType] = useState(() => sessionStorage.getItem('student_testType') || null);
 
+  // Ensure browser localStorage is in sync with MongoDB (clear any legacy test submitted flags)
+  useEffect(() => {
+    ['internal_1', 'internal_2', 'internal_3'].forEach(type => {
+      localStorage.removeItem(`vac_test_submitted_${type}`);
+    });
+  }, []);
+
   useEffect(() => {
     sessionStorage.setItem('student_testState', testState);
     if (currentTestType) {
@@ -157,8 +164,14 @@ const StudentDashboard = () => {
   };
 
   const handleLogout = () => {
+    ['internal_1', 'internal_2', 'internal_3'].forEach(type => {
+      localStorage.removeItem(`vac_test_submitted_${type}`);
+      localStorage.removeItem(`vac_test_state_${type}`);
+    });
     localStorage.removeItem('studentToken');
     localStorage.removeItem('studentData');
+    sessionStorage.removeItem('student_testState');
+    sessionStorage.removeItem('student_testType');
     navigate('/student/login');
   };
 
@@ -169,11 +182,19 @@ const StudentDashboard = () => {
   };
 
   const handleStartTestFlow = (testType) => {
+    const testKeyMap = { internal_1: 'internal1', internal_2: 'internal2', internal_3: 'internal3' };
+    const mappedScore = scores?.online_test?.[testKeyMap[testType]];
+    if (mappedScore?.isSubmitted) {
+      showFlash("You have already submitted this test. Awaiting admin finalization.", "info");
+      return;
+    }
     setCurrentTestType(testType);
     setTestState('INSTRUCTIONS');
   };
 
   const handleTestCompletion = () => {
+    sessionStorage.removeItem('student_testState');
+    sessionStorage.removeItem('student_testType');
     setTestState('DASHBOARD');
     setCurrentTestType(null);
     fetchStudentData(); // Refresh scores so it shows "Submitted"

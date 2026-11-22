@@ -3,7 +3,7 @@ import { useUI } from '../../context/UIContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange, tableData, handleTableDataChange, testSettings }) => {
+const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange, tableData, handleTableDataChange, testSettings, onRefresh }) => {
   const { showFlash, showLoader, hideLoader } = useUI();
   const [filterLetter, setFilterLetter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -182,7 +182,7 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
         <td style={{ padding: '12px 16px', color: '#1e293b', fontWeight: '600' }}>{st.name}</td>
         <td style={{ padding: '12px 16px', color: '#1e293b' }}>{st.vac_rollNo}</td>
         <td style={{ padding: '12px 16px', color: '#1e293b' }}>{st.department}</td>
-        <td style={{ padding: '12px 16px' }}>
+        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
           {!isResultView && currentState === 'pending' ? (
             <select 
               value={tableData[st.vac_rollNo]?.[phaseKey]?.att || ''}
@@ -193,12 +193,32 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
               <option value="P">P</option>
               <option value="A">A</option>
             </select>
-          ) : (tableData[st.vac_rollNo]?.[phaseKey]?.att || (isResultView ? 'A' : '-'))}
+          ) : (
+            <span style={{ 
+              fontWeight: 'bold', 
+              color: (tableData[st.vac_rollNo]?.[phaseKey]?.att === 'P' || tableData[st.vac_rollNo]?.[phaseKey]?.isSubmitted) ? '#16a34a' : '#ef4444' 
+            }}>
+              {tableData[st.vac_rollNo]?.[phaseKey]?.att || (tableData[st.vac_rollNo]?.[phaseKey]?.isSubmitted ? 'P' : (isResultView ? 'A' : '-'))}
+            </span>
+          )}
         </td>
-        <td style={{ padding: '12px 16px', color: '#94a3b8' }}>
-          {(tableData[st.vac_rollNo]?.[phaseKey]?.score !== undefined && tableData[st.vac_rollNo]?.[phaseKey]?.score !== '')
-             ? tableData[st.vac_rollNo][phaseKey].score 
-             : (isResultView ? '0' : '-')}
+        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+          {(tableData[st.vac_rollNo]?.[phaseKey]?.score !== undefined && tableData[st.vac_rollNo]?.[phaseKey]?.score !== null && tableData[st.vac_rollNo]?.[phaseKey]?.score !== '') ? (
+            <span style={{ 
+              backgroundColor: '#e0f2fe', 
+              color: '#0369a1', 
+              padding: '4px 10px', 
+              borderRadius: '6px', 
+              fontWeight: 'bold', 
+              fontSize: '0.95rem' 
+            }}>
+              {tableData[st.vac_rollNo][phaseKey].score}
+            </span>
+          ) : (
+            <span style={{ color: '#94a3b8', fontWeight: '500' }}>
+              {isResultView ? '0' : '-'}
+            </span>
+          )}
         </td>
       </>
     );
@@ -325,6 +345,28 @@ const TestSection = ({ students, activeSubTab, testStates, handleTestStateChange
              </span>
            </div>
            {renderFilterDropdown()}
+           {onRefresh && (
+             <button 
+               onClick={onRefresh} 
+               style={{ 
+                 backgroundColor: '#ffffff', 
+                 color: '#1e3a8a', 
+                 border: '1px solid #cbd5e1', 
+                 borderRadius: '6px', 
+                 padding: '6px 12px', 
+                 cursor: 'pointer', 
+                 fontSize: '0.85rem', 
+                 fontWeight: '600',
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: '6px',
+                 boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+               }}
+               title="Sync latest CBT test submissions from database"
+             >
+               🔄 Sync Live Data
+             </button>
+           )}
          </div>
          
          {activeSubTab.endsWith('_entry') && activeSubTab.startsWith('internal_') && (

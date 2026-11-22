@@ -110,6 +110,16 @@ const AdminDashboard = () => {
     fetchLiveData();
   }, []);
 
+  // Live polling for Test Section (auto-syncs student CBT submissions live every 5s)
+  useEffect(() => {
+    if (activeSection === 'test') {
+      const interval = setInterval(() => {
+        fetchLiveData();
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [activeSection]);
+
   const getSetting = (type) => testSettings.find(s => s.testType === type) || {};
 
   // Helper function to handle tab clicking
@@ -328,6 +338,7 @@ const AdminDashboard = () => {
                 tableData={tableData}
                 handleTableDataChange={handleTableDataChange}
                 testSettings={testSettings}
+                onRefresh={fetchLiveData}
               />;
     }
     

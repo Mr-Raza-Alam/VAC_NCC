@@ -16,7 +16,7 @@ const BranchCard = ({ title, testType, settings, score, onStartTest, onViewResul
   const isScheduled = !!settings?.testDate;
   let hasSubmitted = false;
   if (score && typeof score === 'object') {
-    hasSubmitted = score.isSubmitted;
+    hasSubmitted = !!score.isSubmitted;
   } else {
     hasSubmitted = score !== undefined && score !== null && score !== 'N/A';
   }
