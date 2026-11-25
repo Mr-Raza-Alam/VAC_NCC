@@ -347,7 +347,7 @@ const AdminDashboard = () => {
     }
 
     if (activeSection === 'class_management') {
-      return <ClassManagement />;
+      return <ClassManagement activeSubTab={activeSubTab} />;
     }
 
     return null;
@@ -436,9 +436,6 @@ const AdminDashboard = () => {
             <h1 style={{ fontSize: '2rem', color: '#1e3a8a', textTransform: 'capitalize', margin: 0 }}>
               {activeSubTab.replace(/_/g, ' ')}
             </h1>
-            <span style={{ padding: '6px 16px', backgroundColor: '#e2e8f0', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold', color: '#475569', textTransform: 'uppercase' }}>
-              {activeSection} Section
-            </span>
           </div>
           
           {renderContent()}

@@ -41,6 +41,24 @@ exports.updateBroadcast = async (req, res) => {
     }
 };
 
+exports.updateClassRoutine = async (req, res) => {
+    try {
+        const { currentBatch, timetableDays, timetableTime, timetableInstructor, timetableVenue } = req.body;
+        const settings = await getGlobalSettings();
+
+        if (currentBatch !== undefined) settings.currentBatch = currentBatch;
+        if (timetableDays !== undefined) settings.timetableDays = timetableDays;
+        if (timetableTime !== undefined) settings.timetableTime = timetableTime;
+        if (timetableInstructor !== undefined) settings.timetableInstructor = timetableInstructor;
+        if (timetableVenue !== undefined) settings.timetableVenue = timetableVenue;
+
+        await settings.save();
+        res.status(200).json({ message: "Class routine and batch updated successfully", settings });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+};
+
 exports.executeReset = async (req, res) => {
     try {
         const { resetTarget, adminUsername, password } = req.body;

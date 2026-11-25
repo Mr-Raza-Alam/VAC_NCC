@@ -4,6 +4,7 @@ const settingsController = require('../controllers/settingsController');
 
 router.get('/', settingsController.getSettings);
 router.put('/broadcast', settingsController.updateBroadcast);
+router.put('/routine', settingsController.updateClassRoutine);
 router.post('/reset', settingsController.executeReset);
 router.get('/audit-logs', settingsController.getAuditLogs);
 

@@ -5,6 +5,31 @@ const StudentClasses = () => {
   const { showFlash, showLoader, hideLoader } = useUI();
   const [classes, setClasses] = useState([]);
   const [locationStatus, setLocationStatus] = useState('');
+  const [routine, setRoutine] = useState({
+    currentBatch: '',
+    timetableDays: ['Monday', 'Wednesday', 'Friday'],
+    timetableTime: '10:00 AM - 11:00 AM',
+    timetableInstructor: "CTO sir / ma'am",
+    timetableVenue: 'NCC Department'
+  });
+
+  const fetchRoutine = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings`);
+      const data = await response.json();
+      if (response.ok && data) {
+        setRoutine({
+          currentBatch: data.currentBatch || '',
+          timetableDays: data.timetableDays && data.timetableDays.length > 0 ? data.timetableDays : ['Monday', 'Wednesday', 'Friday'],
+          timetableTime: data.timetableTime || '10:00 AM - 11:00 AM',
+          timetableInstructor: data.timetableInstructor || "CTO sir / ma'am",
+          timetableVenue: data.timetableVenue || 'NCC Department'
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching routine for student:', err);
+    }
+  };
 
   const fetchClasses = async () => {
     try {
@@ -23,6 +48,7 @@ const StudentClasses = () => {
 
   useEffect(() => {
     fetchClasses();
+    fetchRoutine();
   }, []);
 
   const handleMarkAttendance = async (classId, classType, zoomLink) => {
@@ -90,7 +116,69 @@ const StudentClasses = () => {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
+      {/* Official Weekly Timetable Card */}
+      <div style={{ 
+        backgroundColor: '#ffffff', 
+        borderRadius: '12px', 
+        border: '1px solid #cbd5e1', 
+        borderLeft: '5px solid #002147', 
+        padding: '20px 24px', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' 
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+          <div>
+            <h3 style={{ margin: 0, color: '#002147', fontSize: '1.25rem', fontWeight: '700' }}>
+              Weekly Class Timetable & Routine
+            </h3>
+            <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '0.88rem' }}>
+              Official schedule for Value Added Course (VAC) lectures and practicals.
+            </p>
+          </div>
+          {routine.currentBatch && (
+            <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '6px 14px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.88rem' }}>
+              Batch: {routine.currentBatch}
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <div>
+            <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Scheduled Days</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0f172a', display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+              {routine.timetableDays.map(d => (
+                <span key={d} style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', padding: '2px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>
+                  {d}
+                </span>
+              ))}
+            </span>
+          </div>
+
+          <div>
+            <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Class Time</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0f172a', display: 'block', marginTop: '6px' }}>
+              {routine.timetableTime}
+            </span>
+          </div>
+
+          <div>
+            <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Instructors</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0f172a', display: 'block', marginTop: '6px' }}>
+              {routine.timetableInstructor}
+            </span>
+          </div>
+
+          <div>
+            <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Venue</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: '700', color: '#0f172a', display: 'block', marginTop: '6px' }}>
+              {routine.timetableVenue}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Scheduled Classes & GPS Attendance Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
       {locationStatus && (
         <div style={{ gridColumn: '1 / -1', padding: '16px', backgroundColor: '#fffbeb', color: '#b45309', borderRadius: '8px', border: '1px solid #fde68a', fontWeight: 'bold', textAlign: 'center' }}>
           {locationStatus}
@@ -131,7 +219,7 @@ const StudentClasses = () => {
                   animation: 'pulse 2s infinite'
                 }}
               >
-                📍 MARK ATTENDANCE
+                MARK ATTENDANCE
               </button>
             ) : (
               <button 
@@ -147,9 +235,10 @@ const StudentClasses = () => {
       
       {classes.length === 0 && (
         <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#64748b', backgroundColor: 'white', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-          No classes are currently scheduled. Check back later!
+          No live classes are currently scheduled. Check back later!
         </div>
       )}
+      </div>
 
       <style>
         {`

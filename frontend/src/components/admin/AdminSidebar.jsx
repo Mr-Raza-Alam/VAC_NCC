@@ -69,16 +69,15 @@ const AdminSidebar = ({
 
         <nav style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
           
-          {/* CLASS MANAGEMENT SECTION */}
+          {/* CLASSROOM SECTION */}
           {hasPermission('ACCESS_TEST') ? (
             <div className="sidebar-section" style={{ flexShrink: 0 }}>
-              <div className="sidebar-heading" style={{ padding: '10px 20px', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Classes</div>
               <button 
-                className={`sidebar-btn ${activeSubTab === 'class_schedule' ? 'active' : ''}`}
-                onClick={() => handleTabClick('class_management', 'class_schedule')}
-                style={btnStyle(activeSubTab === 'class_schedule')}
+                className={`sidebar-btn ${activeSection === 'class_management' ? 'active' : ''}`}
+                onClick={() => handleTabClick('class_management', 'classroom')}
+                style={btnStyle(activeSection === 'class_management')}
               >
-                Schedule & Attendance
+                Classroom
               </button>
             </div>
           ) : null}
