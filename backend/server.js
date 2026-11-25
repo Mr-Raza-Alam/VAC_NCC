@@ -23,6 +23,8 @@ const connectDB = async () => {
     const dbUri = MONGO_URI || 'mongodb://127.0.0.1:27017/vac_ncc';
     await mongoose.connect(dbUri, {
         serverSelectionTimeoutMS: 5000, // Fail early if no connection
+        maxPoolSize: 20,
+        minPoolSize: 5,
     });
     console.log('Connected to MongoDB');
 };

@@ -109,7 +109,11 @@ const LiveTest = ({ testType, settings, onSubmit }) => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleAutoSubmit("Time is up! Auto-submitting your test...");
+          // Add subtle 0-2.5s jitter so 60+ devices don't hit the DB in the exact same millisecond
+          const jitterMs = Math.floor(Math.random() * 2500);
+          setTimeout(() => {
+            handleAutoSubmit("Time is up! Auto-submitting your test...");
+          }, jitterMs);
           return 0;
         }
         return prev - 1;
